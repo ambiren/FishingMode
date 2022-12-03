@@ -1,0 +1,11 @@
+<Bindings>
+	<Binding name="FISHING_MODE_TOGGLE" category="FISHING_MODE">
+        if FishingModeFrame:IsShown() then
+            FishingModeFrame:Hide()
+        elseif InCombatLockdown() then
+            print("Can't enable fishing mode during combat lockdown.")
+        else
+            FishingModeFrame:Show()
+        end
+	</Binding>
+</Bindings>

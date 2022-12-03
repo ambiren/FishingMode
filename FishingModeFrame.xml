@@ -1,0 +1,26 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
+    <Script file="FishingModeFrame.lua" />
+    <Frame name="FishingModeFrame" parent="UIParent" setAllPoints="true" toplevel="true" frameStrata="HIGH" hidden="true" mixin="FishingModeFrameMixin">
+        <Scripts>
+            <OnLoad method="OnLoad" />
+            <OnEvent method="OnEvent" />
+            <OnShow method="OnShow" />
+            <OnHide method="OnHide" />
+        </Scripts>
+        <Layers>
+            <Layer level="OVERLAY">
+                <FontString text="FISHING MODE ENABLED&#xA;? = Cast Line&#xA;? = Interact" parentKey="Text" font="Fonts\FRIZQT__.TTF" justifyH="CENTER" outline="NORMAL">
+                    <Anchors>
+                        <Anchor point="CENTER" relativeTo="FishingModeFrame" x="0" y="0" />
+                    </Anchors>
+                    <FontHeight>
+                        <AbsValue val="50" />
+                    </FontHeight>
+                </FontString>
+            </Layer>
+        </Layers>
+    </Frame>
+
+    <Button name="FishingModeInputBlocker" clipChildren="true" setAllPoints="true" hidden="true" parent="UIParent" frameStrata="DIALOG" />
+</Ui>

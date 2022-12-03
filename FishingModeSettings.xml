@@ -1,0 +1,34 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
+	<Script file="FishingModeSettings.lua" />
+    <Frame name="FishingModeKeyBindingButtonTemplate" mixin="FishingModeKeyBindingButtonTemplateMixin" virtual="true">
+		<Size x="560" y="25"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<FontString parentKey="Label" inherits="GameFontNormal" justifyH="LEFT">
+					<Size x="170" y="24"/>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button parentKey="Button1" parentArray="Buttons" inherits="KeyBindingFrameBindingButtonTemplate">
+				<KeyValues>
+					<KeyValue key="SlotIndex" value="1" type="number"/>
+				</KeyValues>
+				<Size x="160" y="22"/>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="CENTER" x="-80"/>
+				</Anchors>
+			</Button>
+			<Button parentKey="Button2" parentArray="Buttons" inherits="KeyBindingFrameBindingButtonTemplate">
+				<KeyValues>
+					<KeyValue key="SlotIndex" value="2" type="number"/>
+				</KeyValues>
+				<Size x="160" y="22"/>
+				<Anchors>
+					<Anchor point="LEFT" relativeKey="$parent.Button1" relativePoint="RIGHT"/>
+				</Anchors>
+			</Button>
+		</Frames>
+	</Frame>
+</Ui>
