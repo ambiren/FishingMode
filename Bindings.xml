@@ -1,5 +1,5 @@
 <Bindings>
-	<Binding name="FISHING_MODE_TOGGLE" category="FISHING_MODE">
+	<Binding name="FISHING_MODE_TOGGLE" header="FISHING_MODE" category="ADDONS">
         if FishingModeFrame:IsShown() then
             FishingModeFrame:Hide()
         elseif InCombatLockdown() then

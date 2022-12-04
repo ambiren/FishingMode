@@ -8,7 +8,6 @@ lib\AceAddon-3.0\AceAddon-3.0.xml
 lib\AceDB-3.0\AceDB-3.0.xml
 lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 lib\LibDBIcon-1.0\lib.xml
-lib\LibWindow-1.1\LibWindow-1.1.lua
 FishingMode.lua
 FishingModeFrame.xml
 FishingModeSettings.xml

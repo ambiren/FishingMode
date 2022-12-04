@@ -107,7 +107,7 @@ function FishingMode:RegisterSettings()
         local defaultValue = not db.minimap.hide
 
         local setting = Settings.RegisterAddOnSetting(category, name, variable, type(defaultValue), defaultValue)
-        Settings.SetOnValueChangedCallback(variable, function(event) 
+        Settings.SetOnValueChangedCallback(variable, function(event)
             self:SetIconVisible(setting:GetValue())
         end)
         Settings.CreateCheckBox(category, setting, tooltip)
@@ -143,18 +143,17 @@ function FishingMode:RegisterSettings()
     end
 
     do
-        local variable = "FishingMode.swapSet"
+        local variable = "FishingMode.swapEquipmentSet"
         local name = "Auto-Equip Gear"
         local tooltip = "Automatically equip a set with the name \"Fishing\" and will swap back when exiting fishing mode"
-        local defaultValue = db.swapSet
+        local defaultValue = db.swapEquipmentSet
 
         local setting = Settings.RegisterAddOnSetting(category, name, variable, type(defaultValue), defaultValue)
         Settings.SetOnValueChangedCallback(variable, function(event)
-            db.swapSet = setting:GetValue()
+            self:SetSwapEquipmentSet(setting:GetValue())
         end)
         Settings.CreateCheckBox(category, setting, tooltip)
     end
 
     Settings.RegisterAddOnCategory(category)
 end
-
