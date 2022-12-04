@@ -1,5 +1,8 @@
-## Interface: 100000
-## Title: FishingMode
+## Interface: 100002
+## Title: Fishing Mode
+## Notes: Enables fishing using the keyboard without changing settings/bindings for normal combat
+## Author: Ambiren-WrA
+## Version: 1.0
 ## SavedVariables: FishingModeDB
 
 lib\LibStub\LibStub.lua
