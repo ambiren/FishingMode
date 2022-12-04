@@ -23,7 +23,7 @@ function FishingModeFrameMixin:OnShow()
     self:UpdateText()
 end
 
-function FishingModeFrameMixin:OnHide(self)
+function FishingModeFrameMixin:OnHide()
     FishingMode:TeardownFishingModeState()
 end
 

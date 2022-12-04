@@ -43,7 +43,7 @@ local defaults = {
 function FishingMode:OnInitialize()
     self.db = AceDB:New("FishingModeDB", defaults)
 
-    self.isEnabled = false
+    self.isSetup = false
 
     local dataObject = LDB:NewDataObject("FishingMode", {
         type = "launcher",
@@ -163,11 +163,11 @@ end
 
 
 function FishingMode:SetupFishingModeState()
-    if self.isEnabled then
+    if self.isSetup then
         return
     end
 
-    self.isEnabled = true
+    self.isSetup = true
 
     self.originalSettings = {}
     for name, value in pairs(self.DESIRED_SETTINGS) do
@@ -201,11 +201,11 @@ function FishingMode:SetupFishingModeState()
 end
 
 function FishingMode:TeardownFishingModeState()
-    if not self.isEnabled then
+    if not self.isSetup then
         return
     end
 
-    self.isEnabled = false
+    self.isSetup = false
 
     for name, value in pairs(self.originalSettings) do
         SetCVar(name, value)
@@ -266,7 +266,7 @@ StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET"] = {
         
         -- Allow the current dialog to disappear so the next one is not shifted down
         C_Timer.After(0, function()
-            StaticPopup_Show("FISHING_MODE_DIALOG_SET_CREATE_FINISHED")
+            StaticPopup_Show("FISHING_MODE_DIALOG_CREATE_SET_FINISHED")
         end)
     end,
     timeout = 0,
@@ -274,7 +274,7 @@ StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET"] = {
     hideOnEscape = true,
 }
 
-StaticPopupDialogs["FISHING_MODE_DIALOG_SET_CREATE_FINISHED"] = {
+StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET_FINISHED"] = {
     text = "Fishing set created. Change the items through Equipment Manager.",
     button1 = "Okay",
     timeout = 0,
@@ -296,4 +296,32 @@ end
 
 function FishingMode:DisplayError(message)
     UIErrorsFrame:AddMessage(message, 1.0, 0.1, 0.1, 1.0)
+end
+
+function FishingMode:IsActive()
+    return FishingModeFrame:IsShown()
+end
+
+function FishingMode:Start()
+    if self:IsActive() then
+        return
+    end
+    
+    if InCombatLockdown() then
+        self:DisplayError("Can't start fishing mode during combat lockdown.")
+    else 
+        FishingModeFrame:Show()
+    end
+end
+
+function FishingMode:Stop()
+    if not self:IsActive() then
+        return
+    end
+
+    if InCombatLockdown() then
+        self:DisplayError("Can't stop fishing mode during combat lockdown.")
+    else 
+        FishingModeFrame:Hide()
+    end
 end
