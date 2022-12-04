@@ -6,6 +6,8 @@ local AceDB = LibStub("AceDB-3.0")
 
 BINDING_HEADER_FISHING_MODE = "Fishing Mode"
 BINDING_NAME_FISHING_MODE_TOGGLE = "Start/Stop Fishing"
+BINDING_NAME_FISHING_MODE_ON = "Start Fishing"
+BINDING_NAME_FISHING_MODE_OFF = "Stop Fishing"
 
 FishingMode.DESIRED_SETTINGS = {
     SoftTargetEnemy = "0",
@@ -192,7 +194,7 @@ function FishingMode:SetupFishingModeState()
             C_EquipmentSet.UseEquipmentSet(setId)
             self.didSwapEquipmentSet = true
         else
-            UIErrorsFrame:AddMessage("Fishing Mode: Cannot change equipment, no set named Fishing", 1.0, 0.1, 0.1, 1.0)
+            self:DisplayError("Fishing Mode: Cannot change equipment, no set named Fishing.")
             self.didSwapEquipmentSet = false
         end
     end 
@@ -213,7 +215,7 @@ function FishingMode:TeardownFishingModeState()
 
     if self.db.profile.swapEquipmentSet and self.didSwapEquipmentSet then
         if not self:RestoreEquipmentSet() then
-            UIErrorsFrame:AddMessage("Fishing Mode: Failed to equip original items", 1.0, 0.1, 0.1, 1.0)
+            self:DisplayError("Fishing Mode: Failed to equip original items.")
         end
     end
 end
@@ -290,4 +292,8 @@ function FishingMode:SetSwapEquipmentSet(enabled)
             StaticPopup_Show("FISHING_MODE_DIALOG_CREATE_SET")
         end
     end
+end
+
+function FishingMode:DisplayError(message)
+    UIErrorsFrame:AddMessage(message, 1.0, 0.1, 0.1, 1.0)
 end

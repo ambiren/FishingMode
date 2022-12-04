@@ -1,11 +1,35 @@
 <Bindings>
-	<Binding name="FISHING_MODE_TOGGLE" header="FISHING_MODE" category="ADDONS">
+	<Binding name="FISHING_MODE_TOGGLE" category="Fishing Mode">
         if FishingModeFrame:IsShown() then
-            FishingModeFrame:Hide()
-        elseif InCombatLockdown() then
-            print("Can't enable fishing mode during combat lockdown.")
-        else
-            FishingModeFrame:Show()
+            if InCombatLockdown() then
+                FishingMode:DisplayError("Can't stop fishing mode during combat lockdown.")
+            else 
+                FishingModeFrame:Hide()
+            end
+        else 
+            if InCombatLockdown() then
+                FishingMode:DisplayError("Can't start fishing mode during combat lockdown.")
+            else 
+                FishingModeFrame:Show()
+            end
+        end
+	</Binding>
+	<Binding name="FISHING_MODE_ON" category="Fishing Mode">
+        if not FishingModeFrame:IsShown() then
+            if InCombatLockdown() then
+                FishingMode:DisplayError("Can't start fishing mode during combat lockdown.")
+            else
+                FishingModeFrame:Show()
+            end
+        end
+	</Binding>
+	<Binding name="FISHING_MODE_OFF" category="Fishing Mode">
+        if FishingModeFrame:IsShown() then
+            if InCombatLockdown() then
+                FishingMode:DisplayError("Can't stop fishing mode during combat lockdown.")
+            else 
+                FishingModeFrame:Hide()
+            end
         end
 	</Binding>
 </Bindings>
