@@ -145,7 +145,7 @@ function FishingMode:RegisterSettings()
     do
         local variable = "FishingMode.swapEquipmentSet"
         local name = "Auto-Equip Gear"
-        local tooltip = "Automatically equip a set with the name \"Fishing\" and will swap back when exiting fishing mode"
+        local tooltip = "Automatically equip a set with the name \"Fishing\" and will swap back when exiting fishing mode. Your rod effect is always active when fishing, so this is generally not needed."
         local defaultValue = db.swapEquipmentSet
 
         local setting = Settings.RegisterAddOnSetting(category, name, variable, type(defaultValue), defaultValue)
