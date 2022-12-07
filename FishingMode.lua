@@ -9,6 +9,9 @@ BINDING_NAME_FISHING_MODE_TOGGLE = "Start/Stop Fishing"
 BINDING_NAME_FISHING_MODE_ON = "Start Fishing"
 BINDING_NAME_FISHING_MODE_OFF = "Stop Fishing"
 
+FishingMode.ICON_NORMAL = "Interface\\AddOns\\FishingMode\\media\\fish_hook"
+FishingMode.ICON_ACTIVE = "Interface\\AddOns\\FishingMode\\media\\fish_hook_green"
+
 FishingMode.DESIRED_SETTINGS = {
     SoftTargetEnemy = "0",
     SoftTargetFriend = "0",
@@ -37,6 +40,7 @@ local defaults = {
             }
         },
         swapEquipmentSet = false,
+        overlayVisible = true,
     },
 }
 
@@ -45,9 +49,9 @@ function FishingMode:OnInitialize()
 
     self.isSetup = false
 
-    local dataObject = LDB:NewDataObject("FishingMode", {
+    self.dataObject = LDB:NewDataObject("FishingMode", {
         type = "launcher",
-        icon = "Interface\\Icons\\inv_fishingpole_01",
+        icon = self.ICON_NORMAL,
         OnClick = function(clickedFrame, button)
             if button == "LeftButton" then
                 if FishingModeFrame:IsShown() then
@@ -66,9 +70,11 @@ function FishingMode:OnInitialize()
         end,
     })
     
-    DBIcon:Register("FishingMode", dataObject, self.db.profile.minimap)
+    DBIcon:Register("FishingMode", self.dataObject, self.db.profile.minimap)
 
-    FishingMode:RegisterSettings()
+    self:SetOverlayVisible(self.db.profile.overlayVisible)
+
+    self:RegisterSettings()
 end
 
 function FishingMode:OnEnable()
@@ -197,7 +203,11 @@ function FishingMode:SetupFishingModeState()
             self:DisplayError("Fishing Mode: Cannot change equipment, no set named Fishing.")
             self.didSwapEquipmentSet = false
         end
-    end 
+    end
+
+    self.dataObject.icon = self.ICON_ACTIVE
+
+    self:DisplayInfo("Fishing Mode Started")
 end
 
 function FishingMode:TeardownFishingModeState()
@@ -218,6 +228,9 @@ function FishingMode:TeardownFishingModeState()
             self:DisplayError("Fishing Mode: Failed to equip original items.")
         end
     end
+
+    self.dataObject.icon = self.ICON_NORMAL
+    self:DisplayInfo("Fishing Mode Stopped")
 end
 
 function FishingMode:SetIconVisible(visible)
@@ -235,6 +248,15 @@ function FishingMode:SetIconLocked(locked)
         DBIcon:Lock("FishingMode")
     else
         DBIcon:Unlock("FishingMode")
+    end
+end
+
+function FishingMode:SetOverlayVisible(visible)
+    self.db.profile.overlayVisible = visible
+    if visible then
+        FishingModeFrame.Text:Show()
+    else
+        FishingModeFrame.Text:Hide()
     end
 end
 
@@ -295,7 +317,11 @@ function FishingMode:SetSwapEquipmentSet(enabled)
 end
 
 function FishingMode:DisplayError(message)
-    UIErrorsFrame:AddMessage(message, 1.0, 0.1, 0.1, 1.0)
+    UIErrorsFrame:AddMessage(message, RED_FONT_COLOR:GetRGB())
+end
+
+function FishingMode:DisplayInfo(message)
+    UIErrorsFrame:AddMessage(message, YELLOW_FONT_COLOR:GetRGB())
 end
 
 function FishingMode:IsActive()

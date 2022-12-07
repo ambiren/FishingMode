@@ -127,6 +127,19 @@ function FishingMode:RegisterSettings()
     end
 
     do
+        local variable = "FishingMode.overlayVisible"
+        local name = "Show Overlay"
+        local tooltip = "Shows an overlay to indicate when fishing mode is active"
+        local defaultValue = db.overlayVisible
+
+        local setting = Settings.RegisterAddOnSetting(category, name, variable, type(defaultValue), defaultValue)
+        Settings.SetOnValueChangedCallback(variable, function(event)
+            self:SetOverlayVisible(setting:GetValue())
+        end)
+        Settings.CreateCheckBox(category, setting, tooltip)
+    end
+
+    do
         local action = "CAST_LINE"
         local name = "Cast Fishing Line"
 
