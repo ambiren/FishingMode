@@ -1,18 +1,24 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="FishingModeFrame.lua" />
-    <Frame name="FishingModeFrame" parent="UIParent" setAllPoints="true" toplevel="true" frameStrata="HIGH" hidden="true" mixin="FishingModeFrameMixin">
+    <Frame name="FishingModeOverlayFrame" parent="UIParent" clipChildren="false" movable="true" toplevel="true" frameStrata="HIGH" hidden="true" mixin="FishingModeOverlayFrameMixin">
+        <!-- TODO: Calculate size from text -->
+		<Size x="650" y="300"/>
+        <Anchors>
+            <Anchor point="CENTER" relativeTo="UIParent" relativePoint="CENTER" x="0" y="0"></Anchor>
+        </Anchors>
         <Scripts>
             <OnLoad method="OnLoad" />
-            <OnEvent method="OnEvent" />
             <OnShow method="OnShow" />
             <OnHide method="OnHide" />
+            <OnDragStart method="OnDragStart" />
+            <OnDragStop method="OnDragStop" />
         </Scripts>
         <Layers>
             <Layer level="OVERLAY">
                 <FontString text="FISHING MODE ENABLED&#xA;? = Cast Line&#xA;? = Interact" parentKey="Text" font="Fonts\FRIZQT__.TTF" justifyH="CENTER" outline="NORMAL">
                     <Anchors>
-                        <Anchor point="CENTER" relativeTo="FishingModeFrame" x="0" y="0" />
+                        <Anchor point="CENTER" relativeTo="FishingModeOverlayFrame" x="0" y="0" />
                     </Anchors>
                     <FontHeight>
                         <AbsValue val="50" />
@@ -23,4 +29,81 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     </Frame>
 
     <Button name="FishingModeInputBlocker" clipChildren="true" setAllPoints="true" hidden="true" parent="UIParent" frameStrata="DIALOG" />
+
+    <Frame name="FishingModeSliderTemplate" virtual="true">
+        <Layers>
+            <Layer level="ARTWORK">
+                <FontString parentKey="Label" inherits="GameFontWhite" justifyH="LEFT">
+                    <Size x="100" y="32" />
+                    <Anchors>
+                        <Anchor point="LEFT" />
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Frames>
+			<Frame parentKey="Slider" inherits="MinimalSliderWithSteppersTemplate" >
+				<Size x="200" y="32"/>
+				<Anchors>
+					<Anchor point="LEFT" relativeKey="$parent.Label" relativePoint="RIGHT" x="5" />
+				</Anchors>
+			</Frame>
+        </Frames>
+    </Frame>
+
+	<Frame name="FishingModeEditModeFrame" clampedToScreen="true" enableMouse="true" mixin="FishingModeEditModeFrameMixin" movable="true" hidden="true">
+		<Size x="450" y="140"/>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BORDER">
+				<FontString parentKey="InfoText" inherits="GameFontWhite" text="Fishing mode overlay can now be moved and resized.">
+					<Size x="400" y="50"/>
+					<Anchors>
+						<Anchor point="TOP" x="0" y="-12" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="BG" inherits="DialogBorderTemplate"/>
+			<Frame parentKey="Header" inherits="DialogHeaderTemplate">
+				<KeyValues>
+					<KeyValue key="textString" value="Fishing Mode Edit Mode" />
+				</KeyValues>
+			</Frame>
+            <Frame parentKey="ScaleSlider" inherits="FishingModeSliderTemplate">
+				<Size x="320" y="32"/>
+                <Anchors>
+                    <Anchor point="TOP" relativeTo="$parent" relativePoint="TOP" x="-10" y="-56"/>
+                </Anchors>
+            </Frame>
+			<Button parentKey="DefaultsButton" inherits="UIPanelButtonTemplate">
+				<Size x="128" y="22"/>
+				<Anchors>
+					<Anchor point="CENTER" relativeTo="$parent" relativePoint="BOTTOM" x="0" y="26"/>
+				</Anchors>
+			</Button>
+			<Button parentKey="CancelButton" inherits="UIPanelButtonTemplate">
+				<Size x="96" y="22"/>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeKey="$parent.DefaultsButton" relativePoint="BOTTOMRIGHT" x="25" y="0"/>
+				</Anchors>
+			</Button>
+			<Button parentKey="OkayButton" inherits="UIPanelButtonTemplate">
+				<Size x="96" y="22"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.DefaultsButton" relativePoint="BOTTOMLEFT" x="-25" y="0"/>
+				</Anchors>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+            <OnDragStart method="OnDragStart" />
+            <OnDragStop method="OnDragStop" />
+		</Scripts>
+	</Frame>
 </Ui>

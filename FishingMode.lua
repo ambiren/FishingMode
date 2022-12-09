@@ -41,38 +41,68 @@ local defaults = {
         },
         swapEquipmentSet = false,
         overlayVisible = true,
+        overlayPosition = {
+            x = 0,
+            y = 0,
+            scale = 1,
+        }
     },
 }
 
 function FishingMode:OnInitialize()
     self.db = AceDB:New("FishingModeDB", defaults)
 
-    self.isSetup = false
+    self.isActive = false
+    self.didPause = false
 
     self.dataObject = LDB:NewDataObject("FishingMode", {
         type = "launcher",
         icon = self.ICON_NORMAL,
         OnClick = function(clickedFrame, button)
             if button == "LeftButton" then
-                if FishingModeFrame:IsShown() then
-                    FishingModeFrame:Hide()
+                if FishingMode:IsActive() then
+                    FishingMode:Stop()
                 else
-                    FishingModeFrame:Show()
+                    FishingMode:Start()
                 end
             else
-                Settings.OpenToCategory("FishingMode")
+                if IsShiftKeyDown() then
+                    FishingModeEditModeFrame:Show()
+                else
+                    Settings.OpenToCategory("FishingMode")
+                end
             end
         end,
         OnTooltipShow = function(tt)
             tt:SetText("Fishing Mode")
             tt:AddLine("|cFFCFCFCFLeft-click|r: Toggle Fishing Mode")
             tt:AddLine("|cFFCFCFCFRight-click|r: Open Settings")
+            tt:AddLine("|cFFCFCFCFShift-Right-click|r: Move/Resize Overlay")
         end,
     })
     
     DBIcon:Register("FishingMode", self.dataObject, self.db.profile.minimap)
 
-    self:SetOverlayVisible(self.db.profile.overlayVisible)
+    self.frame = CreateFrame("Frame")
+    self.frame:Hide()
+    
+    self.frame:RegisterEvent("ADDONS_UNLOADING")
+    self.frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+    self.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    self.frame:SetScript("OnEvent", function(_, event, ...)
+        if event == "ADDONS_UNLOADING" then
+            self:Stop()
+        elseif event == "PLAYER_REGEN_DISABLED" and self.frame:IsShown() then
+            self.didPause = true
+            self:Stop(true)
+        elseif event == "PLAYER_REGEN_ENABLED" and self.didPause then
+            self.didPause = false
+            self:Start(true)
+        end
+    end)
+
+    FishingModeOverlayFrame.Text:SetShown(self.db.profile.overlayVisible)
+    self:LoadOverlayPosition()
 
     self:RegisterSettings()
 end
@@ -89,8 +119,8 @@ function FishingMode:SetBinding(action, index, value)
     -- Have to save the bindings as empty string since saving nil messes up AceDB's merging of saved settings and defaults
     self.db.profile.bindings[action][index] = value or ""
 
-    if FishingModeFrame:IsShown() then
-        FishingModeFrame:UpdateText()
+    if FishingModeOverlayFrame:IsShown() then
+        FishingModeOverlayFrame:UpdateText()
     end
 end
 
@@ -167,72 +197,6 @@ function FishingMode:CreateTemplateEquipmentSet()
     C_EquipmentSet.SaveEquipmentSet(setId)
 end
 
-
-function FishingMode:SetupFishingModeState()
-    if self.isSetup then
-        return
-    end
-
-    self.isSetup = true
-
-    self.originalSettings = {}
-    for name, value in pairs(self.DESIRED_SETTINGS) do
-        self.originalSettings[name] = GetCVar(name)
-        SetCVar(name, value)
-    end
-    
-    local function SetOverrideBindingFromConfig(name, action)
-        for i = 1, 2 do
-            local key = self:GetBinding(name, i)
-            if key then
-                SetOverrideBinding(FishingModeFrame, false, key, action)
-            end
-        end
-    end
-
-    SetOverrideBindingFromConfig("CAST_LINE", "SPELL Fishing")
-    SetOverrideBindingFromConfig("INTERACT", "INTERACTTARGET")
-
-    if self.db.profile.swapEquipmentSet and not InCombatLockdown() then
-        local setId = C_EquipmentSet.GetEquipmentSetID("Fishing")
-        if setId then
-            self:CreateBackupEquipmentSet()
-            C_EquipmentSet.UseEquipmentSet(setId)
-            self.didSwapEquipmentSet = true
-        else
-            self:DisplayError("Fishing Mode: Cannot change equipment, no set named Fishing.")
-            self.didSwapEquipmentSet = false
-        end
-    end
-
-    self.dataObject.icon = self.ICON_ACTIVE
-
-    self:DisplayInfo("Fishing Mode Started")
-end
-
-function FishingMode:TeardownFishingModeState()
-    if not self.isSetup then
-        return
-    end
-
-    self.isSetup = false
-
-    for name, value in pairs(self.originalSettings) do
-        SetCVar(name, value)
-    end
-
-    ClearOverrideBindings(FishingModeFrame)
-
-    if self.db.profile.swapEquipmentSet and self.didSwapEquipmentSet then
-        if not self:RestoreEquipmentSet() then
-            self:DisplayError("Fishing Mode: Failed to equip original items.")
-        end
-    end
-
-    self.dataObject.icon = self.ICON_NORMAL
-    self:DisplayInfo("Fishing Mode Stopped")
-end
-
 function FishingMode:SetIconVisible(visible)
     self.db.profile.minimap.hide = not visible
     if visible then
@@ -253,11 +217,37 @@ end
 
 function FishingMode:SetOverlayVisible(visible)
     self.db.profile.overlayVisible = visible
-    if visible then
-        FishingModeFrame.Text:Show()
-    else
-        FishingModeFrame.Text:Hide()
-    end
+    FishingModeOverlayFrame.Text:SetShown(visible)
+end
+
+function FishingMode:MoveOverlayToPosition(position)
+    FishingModeOverlayFrame:ClearAllPoints()
+    FishingModeOverlayFrame:SetPoint("CENTER", UIParent, "CENTER", position.x / position.scale, position.y / position.scale)
+    FishingModeOverlayFrame:SetScale(position.scale)
+end
+
+function FishingMode:MoveOverlayToDefaultPosition()
+    self:MoveOverlayToPosition(defaults.profile.overlayPosition)
+end
+
+function FishingMode:LoadOverlayPosition()
+    self:MoveOverlayToPosition(self.db.profile.overlayPosition)
+end
+
+function FishingMode:SaveCurrentOverlayPosition()
+    local scale = FishingModeOverlayFrame:GetScale()
+
+	local left = FishingModeOverlayFrame:GetLeft() * scale
+    local top = FishingModeOverlayFrame:GetTop() * scale
+    local right = FishingModeOverlayFrame:GetRight() * scale
+    local bottom = FishingModeOverlayFrame:GetBottom() * scale
+
+    local x = (left + right) / 2 - UIParent:GetWidth() / 2
+    local y = (bottom + top) / 2 - UIParent:GetHeight() / 2
+	
+    self.db.profile.overlayPosition.x = x
+    self.db.profile.overlayPosition.y = y
+    self.db.profile.overlayPosition.scale = scale
 end
 
 function FishingMode:ConvertInputToKey(input)
@@ -325,29 +315,91 @@ function FishingMode:DisplayInfo(message)
 end
 
 function FishingMode:IsActive()
-    return FishingModeFrame:IsShown()
+    return self.isActive
 end
 
-function FishingMode:Start()
+function FishingMode:Start(isResuming)
     if self:IsActive() then
         return
     end
     
     if InCombatLockdown() then
         self:DisplayError("Can't start fishing mode during combat lockdown.")
-    else 
-        FishingModeFrame:Show()
+        return
+    end
+
+    self.isActive = true
+
+    self.originalSettings = {}
+    for name, value in pairs(self.DESIRED_SETTINGS) do
+        self.originalSettings[name] = GetCVar(name)
+        SetCVar(name, value)
+    end
+    
+    local function SetOverrideBindingFromConfig(name, action)
+        for i = 1, 2 do
+            local key = self:GetBinding(name, i)
+            if key then
+                SetOverrideBinding(self.frame, false, key, action)
+            end
+        end
+    end
+
+    SetOverrideBindingFromConfig("CAST_LINE", "SPELL Fishing")
+    SetOverrideBindingFromConfig("INTERACT", "INTERACTTARGET")
+
+    if self.db.profile.swapEquipmentSet and not InCombatLockdown() then
+        local setId = C_EquipmentSet.GetEquipmentSetID("Fishing")
+        if setId then
+            self:CreateBackupEquipmentSet()
+            C_EquipmentSet.UseEquipmentSet(setId)
+            self.didSwapEquipmentSet = true
+        else
+            self:DisplayError("Fishing Mode: Cannot change equipment, no set named Fishing.")
+            self.didSwapEquipmentSet = false
+        end
+    end
+
+    self.frame:Show()
+    FishingModeOverlayFrame:RefCountedShow()
+
+    self.dataObject.icon = self.ICON_ACTIVE
+
+    if not isResuming then
+        self:DisplayInfo("Fishing Mode Started")
     end
 end
 
-function FishingMode:Stop()
+function FishingMode:Stop(isPausing)
     if not self:IsActive() then
         return
     end
 
     if InCombatLockdown() then
         self:DisplayError("Can't stop fishing mode during combat lockdown.")
-    else 
-        FishingModeFrame:Hide()
+        return
+    end
+
+    self.isActive = false
+
+    for name, value in pairs(self.originalSettings) do
+        SetCVar(name, value)
+    end
+
+    ClearOverrideBindings(self.frame)
+
+    if self.db.profile.swapEquipmentSet and self.didSwapEquipmentSet then
+        if not self:RestoreEquipmentSet() then
+            self:DisplayError("Fishing Mode: Failed to equip original items.")
+        end
+    end
+
+    self.frame:Hide()
+    FishingModeOverlayFrame:RefCountedHide()
+
+    self.dataObject.icon = self.ICON_NORMAL
+
+    if not isPausing then
+        self:DisplayInfo("Fishing Mode Stopped")
     end
 end
