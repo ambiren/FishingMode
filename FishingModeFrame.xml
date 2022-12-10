@@ -3,7 +3,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
     <Script file="FishingModeFrame.lua" />
     <Frame name="FishingModeOverlayFrame" parent="UIParent" clipChildren="false" movable="true" toplevel="true" frameStrata="HIGH" hidden="true" mixin="FishingModeOverlayFrameMixin">
         <!-- TODO: Calculate size from text -->
-		<Size x="650" y="300"/>
+		<Size x="650" y="200"/>
         <Anchors>
             <Anchor point="CENTER" relativeTo="UIParent" relativePoint="CENTER" x="0" y="0"></Anchor>
         </Anchors>
@@ -54,7 +54,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
 	<Frame name="FishingModeEditModeFrame" clampedToScreen="true" enableMouse="true" mixin="FishingModeEditModeFrameMixin" movable="true" hidden="true">
 		<Size x="450" y="140"/>
 		<Anchors>
-			<Anchor point="CENTER"/>
+			<Anchor point="TOP" relativeTo="UIParent" relativePoint="TOP" x="0" y="-50" />
 		</Anchors>
 		<Layers>
 			<Layer level="BORDER">

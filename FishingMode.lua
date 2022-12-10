@@ -9,6 +9,8 @@ BINDING_NAME_FISHING_MODE_TOGGLE = "Start/Stop Fishing"
 BINDING_NAME_FISHING_MODE_ON = "Start Fishing"
 BINDING_NAME_FISHING_MODE_OFF = "Stop Fishing"
 
+FishingMode.callbacks = LibStub("CallbackHandler-1.0"):New(FishingMode)
+
 FishingMode.ICON_NORMAL = "Interface\\AddOns\\FishingMode\\media\\fish_hook"
 FishingMode.ICON_ACTIVE = "Interface\\AddOns\\FishingMode\\media\\fish_hook_green"
 
@@ -367,6 +369,9 @@ function FishingMode:Start(isResuming)
 
     if not isResuming then
         self:DisplayInfo("Fishing Mode Started")
+        self.callbacks:Fire("FISHING_MODE_STARTED")
+    else
+        self.callbacks:Fire("FISHING_MODE_RESUMED")
     end
 end
 
@@ -401,5 +406,8 @@ function FishingMode:Stop(isPausing)
 
     if not isPausing then
         self:DisplayInfo("Fishing Mode Stopped")
+        self.callbacks:Fire("FISHING_MODE_STOPPED")
+    else
+        self.callbacks:Fire("FISHING_MODE_PAUSED")
     end
 end
