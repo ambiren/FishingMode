@@ -25,7 +25,7 @@ FishingMode.DESIRED_SETTINGS = {
     autoLootDefault = "1",
 }
 
-local defaults = {
+FishingMode.defaults = {
     profile = {
         minimap = {
             hide = false,
@@ -52,7 +52,7 @@ local defaults = {
 }
 
 function FishingMode:OnInitialize()
-    self.db = AceDB:New("FishingModeDB", defaults)
+    self.db = AceDB:New("FishingModeDB", self.defaults)
 
     self.isActive = false
     self.didPause = false
