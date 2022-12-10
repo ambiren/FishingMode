@@ -118,8 +118,21 @@ function FishingMode:OnEnable()
 end
 
 function FishingMode:SetBinding(action, index, value)
-    -- Have to save the bindings as empty string since saving nil messes up AceDB's merging of saved settings and defaults
+    -- Have to save null bindings as empty string since saving nil messes up AceDB's merging of saved settings and defaults
     self.db.profile.bindings[action][index] = value or ""
+    self.callbacks:Fire("FISHING_MODE_BINDING_CHANGED", action, index, value)
+
+    -- If the binding duplicates another binding, delete that binding
+    if value then
+        for a, actions in pairs(self.db.profile.bindings) do
+            for i, binding in ipairs(actions) do
+                if binding == value and (a ~= action or i ~= index) then
+                    actions[i] = ""
+                    self.callbacks:Fire("FISHING_MODE_BINDING_CHANGED", a, i, nil)
+                end
+            end
+        end
+    end
 
     if FishingModeOverlayFrame:IsShown() then
         FishingModeOverlayFrame:UpdateText()

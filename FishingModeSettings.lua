@@ -1,11 +1,5 @@
 FishingModeKeyBindingButtonTemplateMixin = {}
 
-function FishingModeKeyBindingButtonTemplateMixin:UpdateBindingState(initializer)
-    for index, button in ipairs(self.Buttons) do
-        BindingButtonTemplate_SetupBindingButton(FishingMode:GetBinding(initializer.data.action, index), button)
-    end
-end
-
 function FishingModeKeyBindingButtonTemplateMixin:ProcessInput(button, index, initializer, input)
     local key = FishingMode:ConvertInputToKey(input)
     if key then
@@ -14,7 +8,6 @@ function FishingModeKeyBindingButtonTemplateMixin:ProcessInput(button, index, in
 
     initializer.selectedIndex = nil
     self:StopInputListener(button)
-    self:UpdateBindingState(initializer)
 end
 
 function FishingModeKeyBindingButtonTemplateMixin:StartInputListener(button, index, initializer)
@@ -68,6 +61,12 @@ function FishingModeKeyBindingButtonTemplateMixin:Init(initializer)
         end
     end
 
+    FishingMode.RegisterCallback(self, "FISHING_MODE_BINDING_CHANGED", function(event, a, i, binding)
+        if a == action then
+            BindingButtonTemplate_SetupBindingButton(binding, self.Buttons[i])
+        end
+    end)
+
     for index, button in ipairs(self.Buttons) do
         button:SetScript("OnClick", function(button, buttonName, down)
             if buttonName == "LeftButton" then
@@ -81,7 +80,6 @@ function FishingModeKeyBindingButtonTemplateMixin:Init(initializer)
                 FishingMode:SetBinding(action, index, nil)
                 initializer.selectedIndex = nil
                 self:StopInputListener(button)
-                self:UpdateBindingState(initializer)
             else
                 self:ProcessInput(button, index, initializer, buttonName)
             end
@@ -91,7 +89,9 @@ function FishingModeKeyBindingButtonTemplateMixin:Init(initializer)
         button:SetCustomTooltipAnchoring(button, "ANCHOR_RIGHT", 0, 0);
     end
 
-    self:UpdateBindingState(initializer)
+    for index, button in ipairs(self.Buttons) do
+        BindingButtonTemplate_SetupBindingButton(FishingMode:GetBinding(initializer.data.action, index), button)
+    end
 end
 
 function FishingMode:RegisterSettings()
