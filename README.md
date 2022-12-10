@@ -18,6 +18,10 @@ To ensure that the interact key works consistently, ensure that you are not stan
 
 To configure the keybinds to toggle fishing mode, open the game options and go to Options🡒Game🡒Keybindings and look for the Fishing Mode section.
 
+### Adjusting the Overlay
+
+The overlay can be moved around and resized by Shift+Right-clicking on the minimap icon. When in this Fishing Mode Edit Mode, you can click on and drag the overlay around. Resizing is performed via the scale slider. To save the changes click Okay. If you wish to undo the changes you just made, click Cancel.
+
 ### Fishing Mode Settings
 
 All other options for fishing mode are found under Options🡒AddOns🡒Fishing Mode.
