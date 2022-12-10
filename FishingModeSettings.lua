@@ -243,6 +243,7 @@ function FishingMode:RegisterSettings()
 
     FishingMode.db.RegisterCallback(FishingMode, "OnProfileChanged", "RefreshSettings")
     FishingMode.db.RegisterCallback(FishingMode, "OnProfileCopied", "RefreshSettings")
+    FishingMode.db.RegisterCallback(FishingMode, "OnProfileReset", "RefreshSettings")
 
     LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Fishing Mode", "Profiles", "FishingMode")
 end
