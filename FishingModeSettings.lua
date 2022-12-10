@@ -136,7 +136,14 @@ function FishingMode:RegisterSettings()
         Settings.SetOnValueChangedCallback(variable, function(event)
             self:SetOverlayVisible(setting:GetValue())
         end)
-        Settings.CreateCheckBox(category, setting, tooltip)
+        local initializer = Settings.CreateControlInitializer("SettingsCheckBoxWithButtonControlTemplate", setting, nil, tooltip);
+        initializer.data.buttonText = "Move/Resize Overlay"
+        initializer.data.OnButtonClick = function(...)
+            SettingsPanel:Hide()
+            FishingModeEditModeFrame.openSettingsOnHide = true
+            FishingModeEditModeFrame:Show()
+        end
+        layout:AddInitializer(initializer);
     end
 
     do

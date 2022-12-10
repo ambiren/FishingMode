@@ -1,6 +1,6 @@
 FishingModeOverlayFrameMixin = {
-    suppressFishingModeToggle = false,
     refCount = 0,
+    openSettingsOnHide = false,
 }
 
 function FishingModeOverlayFrameMixin:OnLoad()
@@ -110,6 +110,11 @@ function FishingModeEditModeFrameMixin:OnHide()
 
     FishingModeOverlayFrame:RefCountedHide()
     FishingModeOverlayFrame.Text:SetShown(FishingMode.db.profile.overlayVisible)
+
+    if self.openSettingsOnHide then
+        self.openSettingsOnHide = false
+        Settings.OpenToCategory("FishingMode")
+    end
 end
 
 function FishingModeEditModeFrameMixin:OnDragStart()
