@@ -313,7 +313,7 @@ StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET_FINISHED"] = {
 function FishingMode:SetSwapEquipmentSet(enabled)
     self.db.profile.swapEquipmentSet = enabled
 
-    if enabled then
+    if enabled and IsPlayerInWorld() then
         local setId = C_EquipmentSet.GetEquipmentSetID("Fishing")
         if not setId then
             StaticPopup_Show("FISHING_MODE_DIALOG_CREATE_SET")
