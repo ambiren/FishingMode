@@ -162,9 +162,12 @@ end
 function FishingMode:RestoreEquipmentSet()
     local setId = C_EquipmentSet.GetEquipmentSetID(FISHING_MODE_EQUIPMENT_SET_NAME)
     if setId then
-        C_EquipmentSet.UseEquipmentSet(setId)
-        C_EquipmentSet.DeleteEquipmentSet(setId)
-        return true
+        if C_EquipmentSet.UseEquipmentSet(setId) then
+            C_EquipmentSet.DeleteEquipmentSet(setId)
+            return true
+        else
+            return false
+        end
     else
         return false
     end
