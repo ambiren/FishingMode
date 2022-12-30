@@ -479,7 +479,9 @@ function FishingMode:Stop(isPausing)
 
     ClearOverrideBindings(self.frame)
 
-    if self.db.profile.swapEquipmentSet and self.didSwapEquipmentSet then
+    -- We don't swap the equipment set back when pausing because it siliently fails when
+    -- we attempt to do it during the combat lockdown transition
+    if not isPausing and self.db.profile.swapEquipmentSet and self.didSwapEquipmentSet then
         if not self:RestoreEquipmentSet() then
             self:DisplayError("Fishing Mode: Failed to equip original items.")
         end
