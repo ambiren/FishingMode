@@ -229,6 +229,79 @@ function FishingMode:RegisterSettings()
         Settings.CreateCheckBox(category, setting, tooltip)
     end
 
+    do
+
+        local variable = "FishingMode.volumeOverrideEnabled"
+        local name = "Override Volume Levels"
+        local tooltip = "Enable to override your normal volume settings while in fishing mode. The splash sound plays out of the Sound Effects channel."
+        local defaultValue = defaults.volumeOverrideEnabled
+        local initialValue = db.volumeOverrideEnabled
+
+        local setting = Settings.RegisterAddOnSetting(category, name, variable, type(defaultValue), defaultValue)
+        Settings.SetOnValueChangedCallback(variable, function(event)
+            self:SetVolumeOverrideGlobalEnabled(setting:GetValue())
+        end)
+        setting:SetValue(initialValue)
+        local globalInitializer = Settings.CreateCheckBox(category, setting, tooltip)
+
+        local function IsModifiable()
+            return setting:GetValue()
+        end
+
+        local function AddVolumeSlider(key, label, tooltip)
+            local cbVariable = "FishingMode.volumeOverrides." .. key .. ".isOverridden"
+            local sliderVariable = "FishingMode.volumeOverrides." .. key .. ".level"
+            
+            local cbDefault = defaults.volumeOverrides[key].isOverridden
+            local cbInitial = db.volumeOverrides[key].isOverridden
+            local sliderDefault = defaults.volumeOverrides[key].level
+            local sliderInitial = db.volumeOverrides[key].level
+            local cbLabel = "Override " .. label .. " Volume"
+            local sliderLabel = label .. " Volume Level"
+
+            local cbSetting = Settings.RegisterAddOnSetting(category, cbLabel, cbVariable, type(cbDefault), cbDefault)
+            local sliderSetting = Settings.RegisterAddOnSetting(category, sliderLabel, sliderVariable, type(sliderDefault), sliderDefault)
+
+            local function OnValueChanged(...)
+                self:ChangeVolumeOverrideSetting(key, cbSetting:GetValue(), sliderSetting:GetValue())
+            end
+
+            Settings.SetOnValueChangedCallback(cbVariable, OnValueChanged)
+            Settings.SetOnValueChangedCallback(sliderVariable, OnValueChanged)
+
+            cbSetting:SetValue(cbInitial)
+            sliderSetting:SetValue(sliderInitial)
+            
+            local data = {
+                name = label,
+                tooltip = tooltip,
+                cbSetting = cbSetting,
+                cbLabel = cbLabel,
+                cbTooltip = "If enabled, this volume level override will apply. If disabled, the volume will be left untouched.",
+                sliderSetting = sliderSetting,
+                sliderOptions = {
+                    minValue = 0.0,
+                    maxValue = 1.0,
+                    steps = 100,
+                    formatters = {[2] = function(val) return ("%.0f%%"):format(val * 100) end},
+                },
+                sliderLabel = sliderLabel,
+                sliderTooltip = "The value chosen here overrides the normal volume setting.",
+            }
+
+            local initializer = Settings.CreateSettingInitializer("FishingModeSettingsCheckBoxSliderControlTemplate", data)
+            
+            layout:AddInitializer(initializer)
+            initializer:SetParentInitializer(globalInitializer, IsModifiable)
+        end
+
+        AddVolumeSlider("Master", "Master", "Overrides master volume when fishing mode is active")
+        AddVolumeSlider("Ambience", "Ambience", "Overrides ambience volume when fishing mode is active")
+        AddVolumeSlider("Dialog", "Dialog", "Overrides dialog volume when fishing mode is active")
+        AddVolumeSlider("Music", "Music", "Overrides music volume when fishing mode is active")
+        AddVolumeSlider("SFX", "Sound Effects", "Overrides sound effects volume when fishing mode is active")
+    end
+
     Settings.RegisterAddOnCategory(category)
 
     local options = {
@@ -246,4 +319,33 @@ function FishingMode:RegisterSettings()
     FishingMode.db.RegisterCallback(FishingMode, "OnProfileReset", "RefreshSettings")
 
     LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Fishing Mode", "Profiles", "FishingMode")
+end
+
+
+FishingModeSettingsCheckBoxSliderControlMixin = {}
+
+function FishingModeSettingsCheckBoxSliderControlMixin:Init(...)
+    SettingsCheckBoxSliderControlMixin.Init(self, ...)
+    self:EvaluateState()
+end
+
+function FishingModeSettingsCheckBoxSliderControlMixin:EvaluateState()
+    SettingsCheckBoxSliderControlMixin.EvaluateState(self)
+	local enabled = SettingsControlMixin.IsEnabled(self)
+    self.CheckBox:SetEnabled(enabled)
+    self.SliderWithSteppers:SetEnabled_(enabled)
+	self:DisplayEnabled(enabled)
+end
+
+function FishingModeSettingsCheckBoxSliderControlMixin:IsEnabled()
+	local initializer = self:GetElementData();
+	local prereqs = initializer:GetModifyPredicates();
+	if prereqs then
+		for index, prereq in ipairs(prereqs) do
+			if not prereq() then
+				return false;
+			end
+		end
+	end
+	return true;
 end

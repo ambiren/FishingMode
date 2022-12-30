@@ -82,7 +82,7 @@ function FishingModeEditModeFrameMixin:OnLoad()
 	end);
 
     self.ScaleSlider.Slider:Init(FishingModeOverlayFrame:GetScale(), 0.1, 2.0, 19, {
-        [self.ScaleSlider.Slider.Label.Right] = function(val) return ("%d%%"):format(val * 100) end})
+        [self.ScaleSlider.Slider.Label.Right] = function(val) return ("%.0f%%"):format(val * 100) end})
     self.ScaleSlider.Slider.RightText:Show()
     self.ScaleSlider.Label:SetText("Scale")
 

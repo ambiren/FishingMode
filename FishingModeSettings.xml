@@ -31,4 +31,5 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
 			</Button>
 		</Frames>
 	</Frame>
+	<Frame name="FishingModeSettingsCheckBoxSliderControlTemplate" inherits="SettingsCheckBoxSliderControlTemplate" mixin="FishingModeSettingsCheckBoxSliderControlMixin" virtual="true" />
 </Ui>

@@ -47,7 +47,30 @@ FishingMode.defaults = {
             x = 0,
             y = 0,
             scale = 1,
-        }
+        },
+        volumeOverrideEnabled = false,
+        volumeOverrides = {
+            Master = {
+                isOverridden = false,
+                level = 1.0,
+            },
+            Ambience = {
+                isOverridden = true,
+                level = 0.0,
+            },
+            Dialog = {
+                isOverridden = false,
+                level = 1.0,
+            },
+            Music = {
+                isOverridden = true,
+                level = 0.0,
+            },
+            SFX = {
+                isOverridden = true,
+                level = 1.0,
+            },
+        },
     },
 }
 
@@ -336,6 +359,46 @@ function FishingMode:IsActive()
     return self.isActive
 end
 
+function FishingMode:ChangeCVar(name, value)
+    if self.originalSettings[name] == nil then
+        self.originalSettings[name] = GetCVar(name)
+    end
+
+    SetCVar(name, value)
+end
+
+local function GetVolumeCVarName(channelName)
+    return "Sound_" .. channelName .. "Volume"
+end
+
+function FishingMode:SetVolumeOverrideGlobalEnabled(enabled)
+    self.db.profile.volumeOverrideEnabled = enabled
+    for k, v in pairs(self.db.profile.volumeOverrides) do
+        self:ChangeVolumeOverrideSetting(k, v.isOverridden, v.level)
+    end
+end
+
+function FishingMode:ChangeVolumeOverrideSetting(channelName, isOverridden, level)
+    local override = self.db.profile.volumeOverrides[channelName]
+    if not override then
+        override = {}
+        self.db.profile.volumeOverrides[channelName] = override
+    end
+
+    override.isOverridden = isOverridden
+    override.level = level
+
+    local volumeSettingName = GetVolumeCVarName(channelName)
+    if self:IsActive() then
+        if isOverridden and self.db.profile.volumeOverrideEnabled then
+            self:ChangeCVar(volumeSettingName, level)
+        elseif self.originalSettings[volumeSettingName] ~= nil then
+            SetCVar(volumeSettingName, self.originalSettings[volumeSettingName])
+            self.originalSettings[volumeSettingName] = nil
+        end
+    end
+end
+
 function FishingMode:Start(isResuming)
     if self:IsActive() then
         return
@@ -350,8 +413,13 @@ function FishingMode:Start(isResuming)
 
     self.originalSettings = {}
     for name, value in pairs(self.DESIRED_SETTINGS) do
-        self.originalSettings[name] = GetCVar(name)
-        SetCVar(name, value)
+        self:ChangeCVar(name, value)
+    end
+
+    if self.db.profile.volumeOverrideEnabled then
+        for k, v in pairs(self.db.profile.volumeOverrides) do
+            self:ChangeVolumeOverrideSetting(k, v.isOverridden, v.level)
+        end
     end
     
     local function SetOverrideBindingFromConfig(name, action)
@@ -406,6 +474,8 @@ function FishingMode:Stop(isPausing)
     for name, value in pairs(self.originalSettings) do
         SetCVar(name, value)
     end
+
+    table.wipe(self.originalSettings)
 
     ClearOverrideBindings(self.frame)
 
