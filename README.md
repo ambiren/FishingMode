@@ -34,8 +34,6 @@ On the addons settings pane you can change the bindings that are used when fishi
 
 You can choose to have fishing mode auto-equip a gear set when active. For this to work, you must create a gear set named Fishing. When you toggle fishing mode on, it will equip that gear set. When you toggle fishing mode off, it will equip the gear that you had on when you first toggled fishing mode on.
 
-Be aware that entering combat will cause problems with this feature and you will likely have to manually re-equip anything that your fishing set swapped out.
-
 Note that your fishing rod is considered profession equipment, so this option is only useful if you want the extra fishing skill from a fishing hat.
 
 #### Volume Overrides
