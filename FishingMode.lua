@@ -39,7 +39,8 @@ FishingMode.defaults = {
             INTERACT = {
                 [1] = "2",
                 [2] = "",
-            }
+            },
+            actionBars = {},
         },
         swapEquipmentSet = false,
         overlayVisible = true,
@@ -71,8 +72,24 @@ FishingMode.defaults = {
                 level = 1.0,
             },
         },
+        editModeData = {
+            actionBars = {}
+        },
     },
 }
+
+for barIndex = 1, 2 do
+    local barDefaults = {}
+    for buttonIndex = 1, 12 do
+        barDefaults[buttonIndex] = {
+            [1] = "",
+            [2] = "",
+        }
+    end
+
+    FishingMode.defaults.profile.bindings.actionBars[barIndex] = barDefaults
+    FishingMode.defaults.profile.editModeData.actionBars[barIndex] = {}
+end
 
 function FishingMode:OnInitialize()
     self.db = AceDB:New("FishingModeDB", self.defaults)
@@ -130,6 +147,8 @@ function FishingMode:OnInitialize()
     self:LoadOverlayPosition()
 
     self:RegisterSettings()
+
+    self:InitialzeActionBars()
 end
 
 function FishingMode:OnEnable()
@@ -183,6 +202,8 @@ function FishingMode:CreateBackupEquipmentSet()
 end
 
 function FishingMode:RestoreEquipmentSet()
+    UseItemByName("Foo", "none")
+    UseInventoryItem(28)
     local setId = C_EquipmentSet.GetEquipmentSetID(FISHING_MODE_EQUIPMENT_SET_NAME)
     if setId then
         if C_EquipmentSet.UseEquipmentSet(setId) then
@@ -497,5 +518,18 @@ function FishingMode:Stop(isPausing)
         self.callbacks:Fire("FISHING_MODE_STOPPED")
     else
         self.callbacks:Fire("FISHING_MODE_PAUSED")
+    end
+end
+
+function FishingMode:GetCurrentFishingEnchantInfo()
+    local poleTooltip = C_TooltipInfo.GetInventoryItem("player", 28)
+    for _, line in ipairs(poleTooltip.lines) do
+        TooltipUtil.SurfaceArgs(line)
+        if line.leftText then
+            local skill, timeLeft, timeUnit = strmatch(line.leftText, "%(%+(%d+) Fishing Skill%) %((%d+) (%a+)")
+            if skill then
+                return skill, timeLeft, timeUnit
+            end
+        end
     end
 end

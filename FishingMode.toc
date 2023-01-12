@@ -4,6 +4,7 @@
 ## Author: Ambiren-WrA
 ## Version: @project-version@
 ## SavedVariables: FishingModeDB
+## OptionalDependencies: EditModeExpanded
 
 lib\LibStub\LibStub.lua
 lib\CallbackHandler-1.0\CallbackHandler-1.0.xml
@@ -14,6 +15,9 @@ lib\AceConfig-3.0\AceConfig-3.0.xml
 lib\AceDBOptions-3.0\AceDBOptions-3.0.xml
 lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 lib\LibDBIcon-1.0\lib.xml
+lib\LibActionButton-1.0\LibActionButton-1.0.lua
+lib\EditModeExpanded-1.0\EditModeExpanded-1.0.xml
 FishingMode.lua
 FishingModeFrame.xml
 FishingModeSettings.xml
+FishingModeActionBars.lua
