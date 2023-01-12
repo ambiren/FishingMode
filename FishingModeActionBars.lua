@@ -69,10 +69,8 @@ function FishingMode:InitialzeActionBars()
             end
             btn:Show()
         end
-
-        actionBar.BarFrame:Show()
-
-        local editModeData = self.db.profile.editModeData.actionBars[barIndex]
+        
+        local editModeData = self.db.global.editModeData.actionBars[barIndex]
         EditMode:RegisterFrame(actionBar.BarFrame, "Fishing Bar " .. tostring(barIndex), editModeData)
         EditMode:RegisterHideable(actionBar.BarFrame)
     end

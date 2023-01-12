@@ -72,6 +72,8 @@ FishingMode.defaults = {
                 level = 1.0,
             },
         },
+    },
+    global = {
         editModeData = {
             actionBars = {}
         },
@@ -88,8 +90,10 @@ for barIndex = 1, 2 do
     end
 
     FishingMode.defaults.profile.bindings.actionBars[barIndex] = barDefaults
-    FishingMode.defaults.profile.editModeData.actionBars[barIndex] = {}
+    FishingMode.defaults.global.editModeData.actionBars[barIndex] = {}
 end
+
+FishingMode.defaults.profile.bindings.actionBars[1][1][1] = "1"
 
 function FishingMode:OnInitialize()
     self.db = AceDB:New("FishingModeDB", self.defaults)
