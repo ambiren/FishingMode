@@ -36,6 +36,10 @@ You can choose to have fishing mode auto-equip a gear set when active. For this 
 
 Note that your fishing rod is considered profession equipment, so this option is only useful if you want the extra fishing skill from a fishing hat.
 
+#### Pause When Mounted
+
+When this option is selected, fishing mode will automatically pause itself when you mount and will automatically resume itself when you dismount. This feature is enabled by default to avoid the chance of fishing mode keybinds preventing full control of a dragonriding mount.
+
 #### Volume Overrides
 
 You can have fishing mode automatically adjust the various sound levels of the game when active. To do so, you need to enable the option titled Override Volume Levels. This will cause the controls beneath it to become active. Each one functions the same way for each of the sound channels. If the checkbox for a channel is not ticked, then fishing mode will not make any volume adjustments for that channel. If the box is ticked, then fishing mode will set the volume level to the value selected on the slider to the right. 
