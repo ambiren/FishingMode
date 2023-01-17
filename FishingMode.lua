@@ -48,6 +48,7 @@ FishingMode.defaults = {
             y = 0,
             scale = 1,
         },
+        pauseWhenMounted = true,
         volumeOverrideEnabled = false,
         volumeOverrides = {
             Master = {
@@ -78,7 +79,9 @@ function FishingMode:OnInitialize()
     self.db = AceDB:New("FishingModeDB", self.defaults)
 
     self.isActive = false
-    self.didPause = false
+    self.didPauseForCombat = false
+    self.didPauseForMount = false
+    self.pauseCount = 0
 
     self.dataObject = LDB:NewDataObject("FishingMode", {
         type = "launcher",
@@ -114,15 +117,28 @@ function FishingMode:OnInitialize()
     self.frame:RegisterEvent("ADDONS_UNLOADING")
     self.frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     self.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    self.frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
+    self.frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+
     self.frame:SetScript("OnEvent", function(_, event, ...)
         if event == "ADDONS_UNLOADING" then
             self:Stop()
-        elseif event == "PLAYER_REGEN_DISABLED" and self.frame:IsShown() then
-            self.didPause = true
-            self:Stop(true)
-        elseif event == "PLAYER_REGEN_ENABLED" and self.didPause then
-            self.didPause = false
-            self:Start(true)
+        elseif event == "PLAYER_REGEN_DISABLED" and self:IsActiveOrPaused() then
+            self.didPauseForCombat = true
+            self:RequestPause()
+        elseif event == "PLAYER_REGEN_ENABLED" and self.didPauseForCombat then
+            self.didPauseForCombat = false
+            self:RequestResume()
+        elseif (event == "PLAYER_MOUNT_DISPLAY_CHANGED" or event == "PLAYER_ENTERING_WORLD") and self.db.profile.pauseWhenMounted then
+            if self:IsActiveOrPaused() then
+                if not self.didPauseForMount and IsMounted() then
+                    self.didPauseForMount = true
+                    self:RequestPause()
+                elseif self.didPauseForMount and not IsMounted() then
+                    self.didPauseForMount = false
+                    self:RequestResume()
+                end
+            end
         end
     end)
 
@@ -130,6 +146,20 @@ function FishingMode:OnInitialize()
     self:LoadOverlayPosition()
 
     self:RegisterSettings()
+end
+
+function FishingMode:RequestPause()
+    self.pauseCount = self.pauseCount + 1
+    if self.pauseCount == 1 then
+        self:Stop(true)
+    end
+end
+
+function FishingMode:RequestResume()
+    self.pauseCount = self.pauseCount - 1
+    if self.pauseCount == 0 then
+        self:Start(true)
+    end
 end
 
 function FishingMode:OnEnable()
@@ -399,6 +429,25 @@ function FishingMode:ChangeVolumeOverrideSetting(channelName, isOverridden, leve
     end
 end
 
+function FishingMode:IsActiveOrPaused()
+    return self:IsActive() or self.pauseCount > 0
+end
+
+function FishingMode:SetPauseWhenMounted(value)
+    self.db.profile.pauseWhenMounted = value
+    if not FishingMode:IsActiveOrPaused() then
+        return
+    end
+
+    if not value and self.didPauseForMount then
+        self.didPauseForMount = false
+        self:RequestResume()
+    elseif value and not self.didPauseForMount and IsMounted() then
+        self.didPauseForMount = true
+        self:RequestPause()
+    end
+end
+
 function FishingMode:Start(isResuming)
     if self:IsActive() then
         return
@@ -455,6 +504,7 @@ function FishingMode:Start(isResuming)
         self:DisplayInfo("Fishing Mode Started")
         self.callbacks:Fire("FISHING_MODE_STARTED")
     else
+        self:DisplayInfo("Fishing Mode Resumed")
         self.callbacks:Fire("FISHING_MODE_RESUMED")
     end
 end
@@ -496,6 +546,7 @@ function FishingMode:Stop(isPausing)
         self:DisplayInfo("Fishing Mode Stopped")
         self.callbacks:Fire("FISHING_MODE_STOPPED")
     else
+        self:DisplayInfo("Fishing Mode Paused")
         self.callbacks:Fire("FISHING_MODE_PAUSED")
     end
 end

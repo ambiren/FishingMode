@@ -230,10 +230,25 @@ function FishingMode:RegisterSettings()
     end
 
     do
+        local variable = "FishingMode.pauseWhenMounted"
+        local name = "Pause When Mounted"
+        local tooltip = "Will pause and resume fishing mode automatically when mounting and dismounting. Helpful if your key bindings overlap with dragonriding key bindings."
+        local defaultValue = defaults.pauseWhenMounted
+        local initialValue = db.pauseWhenMounted
+
+        local setting = Settings.RegisterAddOnSetting(category, name, variable, type(defaultValue), defaultValue)
+        Settings.SetOnValueChangedCallback(variable, function(event)
+            self:SetPauseWhenMounted(setting:GetValue())
+        end)
+        setting:SetValue(initialValue)
+        Settings.CreateCheckBox(category, setting, tooltip)
+    end
+
+    do
 
         local variable = "FishingMode.volumeOverrideEnabled"
         local name = "Override Volume Levels"
-        local tooltip = "Enable to override your normal volume settings while in fishing mode. The splash sound plays out of the Sound Effects channel."
+        local tooltip = "Enable to override your normal volume settings while in fishing mode. The splash sound plays out of the Sound Effects channel. Levels will return to normal whenever fishing mode is paused/stopped."
         local defaultValue = defaults.volumeOverrideEnabled
         local initialValue = db.volumeOverrideEnabled
 
