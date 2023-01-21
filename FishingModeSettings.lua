@@ -109,14 +109,80 @@ function FishingModeKeyBindingButtonTemplateMixin:Init(initializer)
     end
 end
 
+FishingModeSettingsEditBoxControlMixin = CreateFromMixins(SettingsControlMixin)
+
+function FishingModeSettingsEditBoxControlMixin:OnLoad()
+    SettingsControlMixin.OnLoad(self)
+end
+
+function FishingModeSettingsEditBoxControlMixin:Init(initializer)
+    SettingsControlMixin.Init(self, initializer)
+
+    self.ScrollFrame:SetPoint("LEFT", self.Text, "RIGHT")
+
+    local setting = self:GetSetting()
+    self.ScrollFrame.EditBox:SetText(setting:GetValue() or "")
+    self.SaveButton:SetScript("OnClick", function()
+        setting:SetValue(self.ScrollFrame.EditBox:GetText())
+        self:SetButtonsEnabled(false)
+    end)
+    self.CancelButton:SetScript("OnClick", function()
+        self.ScrollFrame.EditBox:SetText(setting:GetValue() or "")
+        self:SetButtonsEnabled(false)
+    end)
+
+    self:SetButtonsEnabled(false)
+end
+
+function FishingModeSettingsEditBoxControlMixin:UpdateButtons()
+    -- Because there's a delay in OnTextChanged firing and we can't suppress it when we load the text
+    -- from the setting, we have to compare the text to see if it's changed
+    local isModified = self:GetSetting():GetValue() ~= self.ScrollFrame.EditBox:GetText()
+    self:SetButtonsEnabled(isModified)
+end
+
+function FishingModeSettingsEditBoxControlMixin:SetButtonsEnabled(enabled)
+    self.SaveButton:SetEnabled(enabled)
+    self.CancelButton:SetEnabled(enabled)
+end
+
+function FishingModeSettingsEditBoxControlMixin:OnSettingValueChanged(setting, value)
+    SettingsControlMixin.OnSettingValueChanged(self, setting, value)
+
+    self.ScrollFrame.EditBox:SetText(value)
+    self:SetButtonsEnabled(false)
+end
+
+function FishingModeSettingsEditBoxControlMixin:SetValue(value)
+    self.ScrollFrame.EditBox:SetText(value)
+    self:SetButtonsEnabled(false)
+end
+
+local VOLUME_TYPES = {
+    "Master",
+    "Ambience",
+    "Dialog",
+    "Music",
+    "SFX",
+}
+
 function FishingMode:RefreshSettings()
     local db = self.db.profile
     Settings.SetValue("FishingMode.minimap.hide", not db.minimap.hide)
     Settings.SetValue("FishingMode.minimap.lock", db.minimap.lock)
     Settings.SetValue("FishingMode.overlayVisible", db.overlayVisible)
     Settings.SetValue("FishingMode.swapEquipmentSet", db.swapEquipmentSet)
+    Settings.SetValue("FishingMode.pauseWhenMounted", db.pauseWhenMounted)
+    Settings.SetValue("FishingMode.volumeOverrideEnabled", db.volumeOverrideEnabled)
+    for _, volumeType in ipairs(VOLUME_TYPES) do
+        Settings.SetValue("FishingMode.volumeOverrides." .. volumeType .. ".isOverridden", db.volumeOverrides[volumeType].isOverridden)
+        Settings.SetValue("FishingMode.volumeOverrides." .. volumeType .. ".level", db.volumeOverrides[volumeType].level)
+    end
     FishingMode.callbacks:Fire("FISHING_MODE_BINDING_CHANGED")
     FishingMode:MoveOverlayToPosition(db.overlayPosition)
+    for macroIndex = 1, 5 do
+        Settings.SetValue(("FishingMode.macros[%d]"):format(macroIndex), db.macros[macroIndex])
+    end
 end
 
 function FishingMode:RegisterSettings()
@@ -213,6 +279,20 @@ function FishingMode:RegisterSettings()
         local bindingInitializer = Settings.CreateElementInitializer("FishingModeKeyBindingButtonTemplate", { action = action, bindingName = name })
         layout:AddInitializer(bindingInitializer)
     end
+
+    do
+        for macroIndex = 1, 5 do
+            local action = ("MACRO%d"):format(macroIndex)
+            local name = ("Macro %d"):format(macroIndex)
+
+            RegisterBindingSetting(name, action, 1)
+            RegisterBindingSetting(name, action, 2)
+
+            local bindingInitializer = Settings.CreateElementInitializer("FishingModeKeyBindingButtonTemplate", { action = action, bindingName = name })
+            layout:AddInitializer(bindingInitializer)
+        end
+    end
+
 
     do
         local variable = "FishingMode.swapEquipmentSet"
@@ -315,6 +395,28 @@ function FishingMode:RegisterSettings()
         AddVolumeSlider("Dialog", "Dialog", "Overrides dialog volume when fishing mode is active")
         AddVolumeSlider("Music", "Music", "Overrides music volume when fishing mode is active")
         AddVolumeSlider("SFX", "Sound Effects", "Overrides sound effects volume when fishing mode is active")
+    end
+
+    do
+        local subcategory, sublayout = Settings.RegisterVerticalLayoutSubcategory(category, "Macros")
+        subcategory.ID = "FishingMode.macros"
+
+        for macroIndex = 1, 5 do
+            local variable = ("FishingMode.macros[%d]"):format(macroIndex)
+            local name = ("Macro %d"):format(macroIndex)
+            local tooltip = "Bindable macro usable when fishing mode is active."
+            local defaultValue = ""
+            local initialValue = db.macros[macroIndex]
+
+            local setting = Settings.RegisterAddOnSetting(category, name, variable, type(defaultValue), defaultValue)
+            Settings.SetOnValueChangedCallback(variable, function(event)
+                FishingMode:SaveMacro(macroIndex, setting:GetValue())
+            end)
+            setting:SetValue(initialValue)
+
+            local initializer = Settings.CreateControlInitializer("FishingModeSettingsEditBoxControlTemplate", setting, nil, tooltip)
+            sublayout:AddInitializer(initializer)
+        end
     end
 
     Settings.RegisterAddOnCategory(category)

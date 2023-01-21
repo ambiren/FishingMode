@@ -39,7 +39,7 @@ FishingMode.defaults = {
             INTERACT = {
                 [1] = "2",
                 [2] = "",
-            }
+            },
         },
         swapEquipmentSet = false,
         overlayVisible = true,
@@ -72,8 +72,17 @@ FishingMode.defaults = {
                 level = 1.0,
             },
         },
+        macros = {}
     },
 }
+
+for macroIndex = 1, 5 do
+    FishingMode.defaults.profile.bindings[("MACRO%d"):format(macroIndex)] = {
+        [1] = "",
+        [2] = "",
+    }
+    FishingMode.defaults.profile.macros[macroIndex] = ""
+end
 
 function FishingMode:OnInitialize()
     self.db = AceDB:New("FishingModeDB", self.defaults)
@@ -141,6 +150,14 @@ function FishingMode:OnInitialize()
             end
         end
     end)
+
+    self.frame.buttons = {}
+    for macroIndex = 1, 5 do
+        local button = CreateFrame("Button", ("FishingModeMacroButton%d"):format(macroIndex), self.frame, "SecureActionButtonTemplate")
+        button:SetAttribute("type", "macro")
+        button:SetAttribute("macrotext", self.db.profile.macros[macroIndex])
+        self.frame.buttons[macroIndex] = button
+    end
 
     FishingModeOverlayFrame.Text:SetShown(self.db.profile.overlayVisible)
     self:LoadOverlayPosition()
@@ -448,6 +465,11 @@ function FishingMode:SetPauseWhenMounted(value)
     end
 end
 
+function FishingMode:SaveMacro(macroIndex, macroText)
+    self.db.profile.macros[macroIndex] = macroText
+    self.frame.buttons[macroIndex]:SetAttribute("macrotext", macroText)
+end
+
 function FishingMode:Start(isResuming)
     if self:IsActive() then
         return
@@ -482,6 +504,10 @@ function FishingMode:Start(isResuming)
 
     SetOverrideBindingFromConfig("CAST_LINE", "SPELL Fishing")
     SetOverrideBindingFromConfig("INTERACT", "INTERACTTARGET")
+
+    for macroIndex = 1, 5 do
+        SetOverrideBindingFromConfig(("MACRO%d"):format(macroIndex), ("CLICK FishingModeMacroButton%d:LeftButton"):format(macroIndex))
+    end
 
     if self.db.profile.swapEquipmentSet and not InCombatLockdown() then
         local setId = C_EquipmentSet.GetEquipmentSetID("Fishing")

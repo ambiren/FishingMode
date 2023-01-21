@@ -1,5 +1,4 @@
-## v1.4.1
+## v1.5.0
 
-* Fishing mode now automatically pauses when mounted
-  * This can be disabled in the settings
-* Messages are now displayed when pausing and resuming for clarity
+* Macros can now be configured and assigned to additional keys
+* To avoid clutter, bindings for these macros will not show in the overlay
