@@ -1,10 +1,6 @@
 <Bindings>
 	<Binding name="FISHING_MODE_TOGGLE" category="Fishing Mode">
-        if FishingMode:IsActive() then
-            FishingMode:Stop()
-        else
-            FishingMode:Start()
-        end
+        FishingMode:Toggle()
 	</Binding>
 	<Binding name="FISHING_MODE_ON" category="Fishing Mode">
         FishingMode:Start()

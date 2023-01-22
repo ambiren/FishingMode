@@ -13,6 +13,7 @@ FishingMode.callbacks = LibStub("CallbackHandler-1.0"):New(FishingMode)
 
 FishingMode.ICON_NORMAL = "Interface\\AddOns\\FishingMode\\media\\fish_hook"
 FishingMode.ICON_ACTIVE = "Interface\\AddOns\\FishingMode\\media\\fish_hook_green"
+FishingMode.ICON_PAUSED = "Interface\\AddOns\\FishingMode\\media\\fish_hook_orange"
 
 FishingMode.DESIRED_SETTINGS = {
     SoftTargetEnemy = "0",
@@ -133,21 +134,12 @@ function FishingMode:OnInitialize()
         if event == "ADDONS_UNLOADING" then
             self:Stop()
         elseif event == "PLAYER_REGEN_DISABLED" and self:IsActiveOrPaused() then
+            self:Pause()
             self.didPauseForCombat = true
-            self:RequestPause()
         elseif event == "PLAYER_REGEN_ENABLED" and self.didPauseForCombat then
-            self.didPauseForCombat = false
-            self:RequestResume()
-        elseif (event == "PLAYER_MOUNT_DISPLAY_CHANGED" or event == "PLAYER_ENTERING_WORLD") and self.db.profile.pauseWhenMounted then
-            if self:IsActiveOrPaused() then
-                if not self.didPauseForMount and IsMounted() then
-                    self.didPauseForMount = true
-                    self:RequestPause()
-                elseif self.didPauseForMount and not IsMounted() then
-                    self.didPauseForMount = false
-                    self:RequestResume()
-                end
-            end
+            self:Start(true)
+        elseif event == "PLAYER_MOUNT_DISPLAY_CHANGED" or event == "PLAYER_ENTERING_WORLD" then
+            self:HandleMountStateChange()
         end
     end)
 
@@ -165,17 +157,14 @@ function FishingMode:OnInitialize()
     self:RegisterSettings()
 end
 
-function FishingMode:RequestPause()
-    self.pauseCount = self.pauseCount + 1
-    if self.pauseCount == 1 then
-        self:Stop(true)
-    end
-end
-
-function FishingMode:RequestResume()
-    self.pauseCount = self.pauseCount - 1
-    if self.pauseCount == 0 then
-        self:Start(true)
+function FishingMode:HandleMountStateChange()
+    if self.db.profile.pauseWhenMounted and self:IsActiveOrPaused() then
+        if not self.didPauseForMount and IsMounted() then
+            self:Pause()
+            self.didPauseForMount = true
+        elseif self.didPauseForMount and not IsMounted() then
+            self:Start(true)
+        end
     end
 end
 
@@ -447,7 +436,11 @@ function FishingMode:ChangeVolumeOverrideSetting(channelName, isOverridden, leve
 end
 
 function FishingMode:IsActiveOrPaused()
-    return self:IsActive() or self.pauseCount > 0
+    return self:IsActive() or self:IsPaused()
+end
+
+function FishingMode:IsPaused()
+    return self.didPauseForCombat or self.didPauseForMount
 end
 
 function FishingMode:SetPauseWhenMounted(value)
@@ -456,13 +449,7 @@ function FishingMode:SetPauseWhenMounted(value)
         return
     end
 
-    if not value and self.didPauseForMount then
-        self.didPauseForMount = false
-        self:RequestResume()
-    elseif value and not self.didPauseForMount and IsMounted() then
-        self.didPauseForMount = true
-        self:RequestPause()
-    end
+    self:HandleMountStateChange()
 end
 
 function FishingMode:SaveMacro(macroIndex, macroText)
@@ -481,6 +468,12 @@ function FishingMode:Start(isResuming)
     end
 
     self.isActive = true
+
+    -- Ensure these are always reset when we start fishing mode
+    -- Necessary for the case where we've paused, but then the explicit start
+    -- keybind is pressed
+    self.didPauseForCombat = false
+    self.didPauseForMount = false
 
     self.originalSettings = {}
     for name, value in pairs(self.DESIRED_SETTINGS) do
@@ -527,26 +520,23 @@ function FishingMode:Start(isResuming)
     self.dataObject.icon = self.ICON_ACTIVE
 
     if not isResuming then
-        self:DisplayInfo("Fishing Mode Started")
         self.callbacks:Fire("FISHING_MODE_STARTED")
+
+        -- We might need to pause right away if fishing mode was started while mounted
+        -- We still fire the event before this to guarantee to listeners that fishing mode
+        -- can't pause when it hasn't been started
+        self:HandleMountStateChange()
+        
+        if not self.didPauseForMount then
+            self:DisplayInfo("Fishing Mode Started")
+        end
     else
         self:DisplayInfo("Fishing Mode Resumed")
         self.callbacks:Fire("FISHING_MODE_RESUMED")
     end
 end
 
-function FishingMode:Stop(isPausing)
-    if not self:IsActive() then
-        return
-    end
-
-    if InCombatLockdown() then
-        self:DisplayError("Can't stop fishing mode during combat lockdown.")
-        return
-    end
-
-    self.isActive = false
-
+function FishingMode:RevertState()
     for name, value in pairs(self.originalSettings) do
         SetCVar(name, value)
     end
@@ -555,24 +545,64 @@ function FishingMode:Stop(isPausing)
 
     ClearOverrideBindings(self.frame)
 
+    self.frame:Hide()
+    FishingModeOverlayFrame:RefCountedHide()
+
+    self.isActive = false
+end
+
+function FishingMode:Pause()
+    if not self:IsActive() then
+        return
+    end
+
+    if InCombatLockdown() then
+        self:DisplayError("Can't pause fishing mode during combat lockdown.")
+        return
+    end
+
+    self:RevertState()
+
+    self:DisplayInfo("Fishing Mode Paused")
+    self.dataObject.icon = self.ICON_PAUSED
+    self.callbacks:Fire("FISHING_MODE_PAUSED")
+end
+
+function FishingMode:Stop()
+    if not self:IsActiveOrPaused() then
+        return
+    end
+
+    if InCombatLockdown() then
+        self:DisplayError("Can't stop fishing mode during combat lockdown.")
+        return
+    end
+
+    -- We already reverted state if we've paused, so don't try to do it again
+    if not self:IsPaused() then
+        self:RevertState()
+    end
+
     -- We don't swap the equipment set back when pausing because it siliently fails when
     -- we attempt to do it during the combat lockdown transition
-    if not isPausing and self.db.profile.swapEquipmentSet and self.didSwapEquipmentSet then
+    if self.db.profile.swapEquipmentSet and self.didSwapEquipmentSet then
         if not self:RestoreEquipmentSet() then
             self:DisplayError("Fishing Mode: Failed to equip original items.")
         end
     end
 
-    self.frame:Hide()
-    FishingModeOverlayFrame:RefCountedHide()
+    self.didPauseForCombat = false
+    self.didPauseForMount = false
 
+    self:DisplayInfo("Fishing Mode Stopped")
     self.dataObject.icon = self.ICON_NORMAL
+    self.callbacks:Fire("FISHING_MODE_STOPPED")
+end
 
-    if not isPausing then
-        self:DisplayInfo("Fishing Mode Stopped")
-        self.callbacks:Fire("FISHING_MODE_STOPPED")
+function FishingMode:Toggle()
+    if FishingMode:IsActiveOrPaused() then
+        FishingMode:Stop()
     else
-        self:DisplayInfo("Fishing Mode Paused")
-        self.callbacks:Fire("FISHING_MODE_PAUSED")
+        FishingMode:Start()
     end
 end
