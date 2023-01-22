@@ -1,4 +1,5 @@
 FishingMode = LibStub("AceAddon-3.0"):NewAddon("FishingMode")
+FishingMode.VERSION = "@project-version@"
 
 local DBIcon = LibStub("LibDBIcon-1.0")
 local LDB = LibStub("LibDataBroker-1.1")
@@ -113,12 +114,13 @@ function FishingMode:OnInitialize()
         end,
         OnTooltipShow = function(tt)
             tt:SetText("Fishing Mode")
+            tt:AddLine(("|cFFC2C2C2%s|r"):format(self.VERSION))
+            tt:AddLine(" ")
             tt:AddLine("|cFFCFCFCFLeft-click|r: Toggle Fishing Mode")
             tt:AddLine("|cFFCFCFCFRight-click|r: Open Settings")
             tt:AddLine("|cFFCFCFCFShift-Right-click|r: Move/Resize Overlay")
         end,
     })
-    
     DBIcon:Register("FishingMode", self.dataObject, self.db.profile.minimap)
 
     self.frame = CreateFrame("Frame")
@@ -526,7 +528,7 @@ function FishingMode:Start(isResuming)
         -- We still fire the event before this to guarantee to listeners that fishing mode
         -- can't pause when it hasn't been started
         self:HandleMountStateChange()
-        
+
         if not self.didPauseForMount then
             self:DisplayInfo("Fishing Mode Started")
         end
