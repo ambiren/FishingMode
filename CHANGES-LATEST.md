@@ -1,4 +1,5 @@
-## v1.5.0
+## v1.5.1
 
-* Macros can now be configured and assigned to additional keys
-* To avoid clutter, bindings for these macros will not show in the overlay
+* Handle toggling fishing mode on/off when paused
+* Display orange icon when paused
+* Display version number in minimap icon tooltip
