@@ -51,6 +51,7 @@ FishingMode.defaults = {
             scale = 1,
         },
         pauseWhenMounted = true,
+        removeCosmeticBuff = false,
         volumeOverrideEnabled = false,
         volumeOverrides = {
             Master = {
@@ -459,6 +460,23 @@ function FishingMode:SaveMacro(macroIndex, macroText)
     self.frame.buttons[macroIndex]:SetAttribute("macrotext", macroText)
 end
 
+function FishingMode:SetRemoveCosmeticBuff(value)
+    self.db.profile.removeCosmeticBuff = value
+end
+
+local function RemovePlayerBuffByID(spellID)
+    for buffIndex = 1, 40 do
+        local spellIDAtIndex = select(10, UnitBuff("player", buffIndex))
+        if spellIDAtIndex == spellID then
+            if UnitAffectingCombat("player") then
+                spellFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+            else
+                CancelUnitBuff("player", buffIndex)
+            end
+        end
+    end
+end
+
 function FishingMode:Start(isResuming)
     if self:IsActive() then
         return
@@ -591,6 +609,10 @@ function FishingMode:Stop()
         if not self:RestoreEquipmentSet() then
             self:DisplayError("Fishing Mode: Failed to equip original items.")
         end
+    end
+
+    if self.db.profile.removeCosmeticBuff then
+        RemovePlayerBuffByID(394009)
     end
 
     self.didPauseForCombat = false

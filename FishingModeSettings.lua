@@ -173,6 +173,7 @@ function FishingMode:RefreshSettings()
     Settings.SetValue("FishingMode.overlayVisible", db.overlayVisible)
     Settings.SetValue("FishingMode.swapEquipmentSet", db.swapEquipmentSet)
     Settings.SetValue("FishingMode.pauseWhenMounted", db.pauseWhenMounted)
+    Settings.SetValue("FishingMode.removeCosmeticBuff", db.removeCosmeticBuff)
     Settings.SetValue("FishingMode.volumeOverrideEnabled", db.volumeOverrideEnabled)
     for _, volumeType in ipairs(VOLUME_TYPES) do
         Settings.SetValue("FishingMode.volumeOverrides." .. volumeType .. ".isOverridden", db.volumeOverrides[volumeType].isOverridden)
@@ -319,6 +320,22 @@ function FishingMode:RegisterSettings()
         local setting = Settings.RegisterAddOnSetting(category, name, variable, type(defaultValue), defaultValue)
         Settings.SetOnValueChangedCallback(variable, function(event)
             self:SetPauseWhenMounted(setting:GetValue())
+        end)
+        setting:SetValue(initialValue)
+        Settings.CreateCheckBox(category, setting, tooltip)
+    end
+
+
+    do
+        local variable = "FishingMode.removeCosmeticBuff"
+        local name = "Remove Cosmetic Buff"
+        local tooltip = "When exiting fishing mode, will automatically remove the buff that shows your fishing rod."
+        local defaultValue = defaults.removeCosmeticBuff
+        local initialValue = db.removeCosmeticBuff
+
+        local setting = Settings.RegisterAddOnSetting(category, name, variable, type(defaultValue), defaultValue)
+        Settings.SetOnValueChangedCallback(variable, function(event)
+            self:SetRemoveCosmeticBuff(setting:GetValue())
         end)
         setting:SetValue(initialValue)
         Settings.CreateCheckBox(category, setting, tooltip)
