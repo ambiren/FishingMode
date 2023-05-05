@@ -87,6 +87,45 @@ for macroIndex = 1, 5 do
     FishingMode.defaults.profile.macros[macroIndex] = ""
 end
 
+function FishingMode_OnAddonCompartmentClick(addonName, button)
+    FishingMode:OnIconClick(button)
+end
+
+function FishingMode_OnAddonCompartmentEnter(...)
+    GameTooltip:SetOwner(AddonCompartmentFrame, "ANCHOR_TOPRIGHT")
+    FishingMode:PopulateTooltip(GameTooltip)
+    GameTooltip:Show()
+end
+
+function FishingMode_OnAddonCompartmentLeave(...)
+    GameTooltip:Hide()
+end
+
+function FishingMode:PopulateTooltip(tt)
+    tt:SetText("Fishing Mode")
+    tt:AddLine(("|cFFC2C2C2%s|r"):format(self.VERSION))
+    tt:AddLine(" ")
+    tt:AddLine("|cFFCFCFCFLeft-click|r: Toggle Fishing Mode")
+    tt:AddLine("|cFFCFCFCFRight-click|r: Open Settings")
+    tt:AddLine("|cFFCFCFCFShift-Right-click|r: Move/Resize Overlay")
+end
+
+function FishingMode:OnIconClick(button)
+    if button == "LeftButton" then
+        if FishingMode:IsActive() then
+            FishingMode:Stop()
+        else
+            FishingMode:Start()
+        end
+    else
+        if IsShiftKeyDown() then
+            FishingModeEditModeFrame:Show()
+        else
+            Settings.OpenToCategory("FishingMode")
+        end
+    end
+end
+
 function FishingMode:OnInitialize()
     self.db = AceDB:New("FishingModeDB", self.defaults)
 
@@ -99,28 +138,9 @@ function FishingMode:OnInitialize()
         type = "launcher",
         icon = self.ICON_NORMAL,
         OnClick = function(clickedFrame, button)
-            if button == "LeftButton" then
-                if FishingMode:IsActive() then
-                    FishingMode:Stop()
-                else
-                    FishingMode:Start()
-                end
-            else
-                if IsShiftKeyDown() then
-                    FishingModeEditModeFrame:Show()
-                else
-                    Settings.OpenToCategory("FishingMode")
-                end
-            end
+            self:OnIconClick(button)
         end,
-        OnTooltipShow = function(tt)
-            tt:SetText("Fishing Mode")
-            tt:AddLine(("|cFFC2C2C2%s|r"):format(self.VERSION))
-            tt:AddLine(" ")
-            tt:AddLine("|cFFCFCFCFLeft-click|r: Toggle Fishing Mode")
-            tt:AddLine("|cFFCFCFCFRight-click|r: Open Settings")
-            tt:AddLine("|cFFCFCFCFShift-Right-click|r: Move/Resize Overlay")
-        end,
+        OnTooltipShow = function(tt) self:PopulateTooltip(tt) end,
     })
     DBIcon:Register("FishingMode", self.dataObject, self.db.profile.minimap)
 

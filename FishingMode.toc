@@ -4,6 +4,10 @@
 ## Author: Ambiren-WrA
 ## Version: @project-version@
 ## SavedVariables: FishingModeDB
+## AddonCompartmentFunc: FishingMode_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: FishingMode_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: FishingMode_OnAddonCompartmentLeave
+## IconTexture: Interface/AddOns/FishingMode/media/fish_hook.tga
 
 lib\LibStub\LibStub.lua
 lib\CallbackHandler-1.0\CallbackHandler-1.0.xml
