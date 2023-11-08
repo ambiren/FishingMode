@@ -1,3 +1,7 @@
+## v1.5.4
+
+* Update TOC for 10.2.0
+
 ## v1.5.3
 
 * Added entry to new minimap addon container
