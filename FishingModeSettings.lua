@@ -218,7 +218,7 @@ function FishingMode:RegisterSettings()
             self:SetIconVisible(setting:GetValue())
         end)
         setting:SetValue(initialValue)
-        Settings.CreateCheckBox(category, setting, tooltip)
+        Settings.CreateCheckbox(category, setting, tooltip)
     end
 
     do
@@ -233,7 +233,7 @@ function FishingMode:RegisterSettings()
             self:SetIconLocked(setting:GetValue())
         end)
         setting:SetValue(initialValue)
-        Settings.CreateCheckBox(category, setting, tooltip)
+        Settings.CreateCheckbox(category, setting, tooltip)
     end
 
     do
@@ -307,7 +307,7 @@ function FishingMode:RegisterSettings()
             self:SetSwapEquipmentSet(setting:GetValue())
         end)
         setting:SetValue(initialValue)
-        Settings.CreateCheckBox(category, setting, tooltip)
+        Settings.CreateCheckbox(category, setting, tooltip)
     end
 
     do
@@ -322,7 +322,7 @@ function FishingMode:RegisterSettings()
             self:SetPauseWhenMounted(setting:GetValue())
         end)
         setting:SetValue(initialValue)
-        Settings.CreateCheckBox(category, setting, tooltip)
+        Settings.CreateCheckbox(category, setting, tooltip)
     end
 
 
@@ -338,7 +338,7 @@ function FishingMode:RegisterSettings()
             self:SetRemoveCosmeticBuff(setting:GetValue())
         end)
         setting:SetValue(initialValue)
-        Settings.CreateCheckBox(category, setting, tooltip)
+        Settings.CreateCheckbox(category, setting, tooltip)
     end
 
     do
@@ -354,7 +354,7 @@ function FishingMode:RegisterSettings()
             self:SetVolumeOverrideGlobalEnabled(setting:GetValue())
         end)
         setting:SetValue(initialValue)
-        local globalInitializer = Settings.CreateCheckBox(category, setting, tooltip)
+        local globalInitializer = Settings.CreateCheckbox(category, setting, tooltip)
 
         local function IsModifiable()
             return setting:GetValue()
@@ -363,7 +363,7 @@ function FishingMode:RegisterSettings()
         local function AddVolumeSlider(key, label, tooltip)
             local cbVariable = "FishingMode.volumeOverrides." .. key .. ".isOverridden"
             local sliderVariable = "FishingMode.volumeOverrides." .. key .. ".level"
-            
+
             local cbDefault = defaults.volumeOverrides[key].isOverridden
             local cbInitial = db.volumeOverrides[key].isOverridden
             local sliderDefault = defaults.volumeOverrides[key].level
@@ -383,7 +383,7 @@ function FishingMode:RegisterSettings()
 
             cbSetting:SetValue(cbInitial)
             sliderSetting:SetValue(sliderInitial)
-            
+
             local data = {
                 name = label,
                 tooltip = tooltip,
@@ -402,7 +402,7 @@ function FishingMode:RegisterSettings()
             }
 
             local initializer = Settings.CreateSettingInitializer("FishingModeSettingsCheckBoxSliderControlTemplate", data)
-            
+
             layout:AddInitializer(initializer)
             initializer:SetParentInitializer(globalInitializer, IsModifiable)
         end
