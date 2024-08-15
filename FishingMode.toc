@@ -1,4 +1,4 @@
-## Interface: 110000
+## Interface: 110002
 ## Title: Fishing Mode
 ## Notes: Enables fishing using the keyboard without changing settings/bindings for normal combat
 ## Author: Ambiren-WrA

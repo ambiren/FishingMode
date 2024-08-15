@@ -146,7 +146,7 @@ function FishingMode:OnInitialize()
 
     self.frame = CreateFrame("Frame")
     self.frame:Hide()
-    
+
     self.frame:RegisterEvent("ADDONS_UNLOADING")
     self.frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     self.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -297,27 +297,24 @@ function FishingMode:CreateTemplateEquipmentSet()
     C_EquipmentSet.SaveEquipmentSet(setId)
 end
 
-function FishingMode:SetIconVisible(visible)
-    self.db.profile.minimap.hide = not visible
-    if visible then
-        DBIcon:Show("FishingMode")
-    else
+function FishingMode:OnIconVisibleChanged()
+    if self.db.profile.minimap.hide then
         DBIcon:Hide("FishingMode")
+    else
+        DBIcon:Show("FishingMode")
     end
 end
 
-function FishingMode:SetIconLocked(locked)
-    self.db.profile.minimap.lock = locked
-    if locked then
+function FishingMode:OnIconLockedChanged()
+    if self.db.profile.minimap.lock then
         DBIcon:Lock("FishingMode")
     else
         DBIcon:Unlock("FishingMode")
     end
 end
 
-function FishingMode:SetOverlayVisible(visible)
-    self.db.profile.overlayVisible = visible
-    FishingModeOverlayFrame.Text:SetShown(visible)
+function FishingMode:OnOverlayVisibleChanged()
+    FishingModeOverlayFrame.Text:SetShown(self.db.profile.overlayVisible)
 end
 
 function FishingMode:MoveOverlayToPosition(position)
@@ -344,7 +341,7 @@ function FishingMode:SaveCurrentOverlayPosition()
 
     local x = (left + right) / 2 - UIParent:GetWidth() / 2
     local y = (bottom + top) / 2 - UIParent:GetHeight() / 2
-	
+
     self.db.profile.overlayPosition.x = x
     self.db.profile.overlayPosition.y = y
     self.db.profile.overlayPosition.scale = scale
@@ -375,7 +372,7 @@ StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET"] = {
     button2 = "Don't Create Set",
     OnAccept = function()
         FishingMode:CreateTemplateEquipmentSet()
-        
+
         -- Allow the current dialog to disappear so the next one is not shifted down
         C_Timer.After(0, function()
             StaticPopup_Show("FISHING_MODE_DIALOG_CREATE_SET_FINISHED")
@@ -395,10 +392,8 @@ StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET_FINISHED"] = {
     enterClicksFirstButton = true,
 }
 
-function FishingMode:SetSwapEquipmentSet(enabled)
-    self.db.profile.swapEquipmentSet = enabled
-
-    if enabled and IsPlayerInWorld() then
+function FishingMode:OnSwapEquipmentSetChanged()
+    if self.db.profile.swapEquipmentSet and IsPlayerInWorld() then
         local setId = C_EquipmentSet.GetEquipmentSetID("Fishing")
         if not setId then
             StaticPopup_Show("FISHING_MODE_DIALOG_CREATE_SET")
@@ -430,23 +425,13 @@ local function GetVolumeCVarName(channelName)
     return "Sound_" .. channelName .. "Volume"
 end
 
-function FishingMode:SetVolumeOverrideGlobalEnabled(enabled)
-    self.db.profile.volumeOverrideEnabled = enabled
-    for k, v in pairs(self.db.profile.volumeOverrides) do
-        self:ChangeVolumeOverrideSetting(k, v.isOverridden, v.level)
+function FishingMode:OnOverrideGlobalEnabledChanged()
+    for k, _ in pairs(self.db.profile.volumeOverrides) do
+        self:OnVolumeOverrideSettingChanged(k)
     end
 end
 
-function FishingMode:ChangeVolumeOverrideSetting(channelName, isOverridden, level)
-    local override = self.db.profile.volumeOverrides[channelName]
-    if not override then
-        override = {}
-        self.db.profile.volumeOverrides[channelName] = override
-    end
-
-    override.isOverridden = isOverridden
-    override.level = level
-
+function FishingMode:OnVolumeOverrideSettingChanged(channelName)
     local volumeSettingName = GetVolumeCVarName(channelName)
     if self:IsActive() then
         if isOverridden and self.db.profile.volumeOverrideEnabled then
@@ -466,8 +451,7 @@ function FishingMode:IsPaused()
     return self.didPauseForCombat or self.didPauseForMount
 end
 
-function FishingMode:SetPauseWhenMounted(value)
-    self.db.profile.pauseWhenMounted = value
+function FishingMode:OnPauseWhenMountedChanged()
     if not FishingMode:IsActiveOrPaused() then
         return
     end
@@ -475,18 +459,13 @@ function FishingMode:SetPauseWhenMounted(value)
     self:HandleMountStateChange()
 end
 
-function FishingMode:SaveMacro(macroIndex, macroText)
-    self.db.profile.macros[macroIndex] = macroText
-    self.frame.buttons[macroIndex]:SetAttribute("macrotext", macroText)
-end
-
-function FishingMode:SetRemoveCosmeticBuff(value)
-    self.db.profile.removeCosmeticBuff = value
+function FishingMode:OnMacroChanged(macroIndex)
+    self.frame.buttons[macroIndex]:SetAttribute("macrotext", self.db.profile.macros[macroIndex])
 end
 
 local function RemovePlayerBuffByID(spellID)
     for buffIndex = 1, 40 do
-        local spellIDAtIndex = select(10, UnitBuff("player", buffIndex))
+        local spellIDAtIndex = select(10, C_UnitAuras.GetBuffDataByIndex("player", buffIndex))
         if spellIDAtIndex == spellID then
             if UnitAffectingCombat("player") then
                 spellFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -501,7 +480,7 @@ function FishingMode:Start(isResuming)
     if self:IsActive() then
         return
     end
-    
+
     if InCombatLockdown() then
         self:DisplayError("Can't start fishing mode during combat lockdown.")
         return
@@ -525,7 +504,7 @@ function FishingMode:Start(isResuming)
             self:ChangeVolumeOverrideSetting(k, v.isOverridden, v.level)
         end
     end
-    
+
     local function SetOverrideBindingFromConfig(name, action)
         for i = 1, 2 do
             local key = self:GetBinding(name, i)

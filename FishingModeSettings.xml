@@ -31,7 +31,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
 			</Button>
 		</Frames>
 	</Frame>
-	<Frame name="FishingModeSettingsCheckBoxSliderControlTemplate" inherits="SettingsCheckBoxSliderControlTemplate" mixin="FishingModeSettingsCheckBoxSliderControlMixin" virtual="true" />
+	<Frame name="FishingModeSettingsCheckBoxSliderControlTemplate" inherits="SettingsCheckBoxSliderControlTemplate" mixin="FishingModeSettingsCheckboxSliderControlMixin" virtual="true" />
 	<Frame name="FishingModeSettingsEditBoxControlTemplate" virtual="true" mixin="FishingModeSettingsEditBoxControlMixin" inherits="SettingsListElementTemplate">
 		<Size x="691" y="92" />
 		<Frames>
