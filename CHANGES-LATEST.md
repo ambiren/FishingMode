@@ -1,3 +1,8 @@
+## v1.6.2
+
+* Fix error while attempting to start Fishing Mode when volume override is enabled
+* Fix cosmetic buff not getting cleared
+
 ## v1.6.1
 
 * Update TOC for 11.0.2
