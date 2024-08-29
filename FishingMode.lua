@@ -465,13 +465,15 @@ end
 
 local function RemovePlayerBuffByID(spellID)
     for buffIndex = 1, 40 do
-        local spellIDAtIndex = select(10, C_UnitAuras.GetBuffDataByIndex("player", buffIndex))
-        if spellIDAtIndex == spellID then
+        local buffAtIndex = C_UnitAuras.GetBuffDataByIndex("player", buffIndex)
+        if buffAtIndex and buffAtIndex.spellId == spellID then
             if UnitAffectingCombat("player") then
                 spellFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
             else
                 CancelUnitBuff("player", buffIndex)
             end
+
+            return
         end
     end
 end
