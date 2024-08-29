@@ -205,12 +205,18 @@ function FishingMode:RegisterSettings()
         Settings.SetValue(variable, FishingMode:GetBinding(action, index) or "")
     end
 
+    local function SetOnValueChangedCallback(variable, callback)
+        Settings.SetOnValueChangedCallback(variable, function()
+            callback(FishingMode)
+        end)
+        callback(FishingMode)
+    end
+
     do
         local variable = "FishingMode.minimap.hide"
         local name = "Show Minimap Icon"
         local tooltip = "Show the Fishing Mode icon on the edge of the minimap"
         local defaultValue = not defaults.minimap.hide
-        local initialValue = not db.minimap.hide
 
         local setting = Settings.RegisterProxySetting(category, variable, type(defaultValue), name, defaultValue,
             function()
@@ -219,10 +225,7 @@ function FishingMode:RegisterSettings()
             function(value)
                 db.minimap.hide = not value
             end)
-        Settings.SetOnValueChangedCallback(variable, function(event)
-            self:OnIconVisibleChanged()
-        end)
-        Settings.SetValue(variable, initialValue)
+        SetOnValueChangedCallback(variable, self.OnIconVisibleChanged)
         Settings.CreateCheckbox(category, setting, tooltip)
     end
 
@@ -231,13 +234,9 @@ function FishingMode:RegisterSettings()
         local name = "Lock Minimap Icon"
         local tooltip = "Prevent minimap icon from being moved around"
         local defaultValue = defaults.minimap.lock
-        local initialValue = db.minimap.lock
 
         local setting = Settings.RegisterAddOnSetting(category, variable, "lock", db.minimap, type(defaultValue), name, defaultValue)
-        Settings.SetOnValueChangedCallback(variable, function(event)
-            self:OnIconLockedChanged()
-        end)
-        Settings.SetValue(variable, initialValue)
+        SetOnValueChangedCallback(variable, self.OnIconLockedChanged)
         Settings.CreateCheckbox(category, setting, tooltip)
     end
 
@@ -247,13 +246,9 @@ function FishingMode:RegisterSettings()
         local tooltip = "Shows an overlay to indicate when fishing mode is active"
         local variableName = "overlayVisible"
         local defaultValue = defaults[variableName]
-        local initialValue = db[variableName]
 
         local setting = Settings.RegisterAddOnSetting(category, variable, variableName, db, type(defaultValue), name, defaultValue)
-        Settings.SetOnValueChangedCallback(variable, function(event)
-            self:OnOverlayVisibleChanged()
-        end)
-        Settings.SetValue(variable, initialValue)
+        SetOnValueChangedCallback(variable, self.OnOverlayVisibleChanged)
 
         local initializer = Settings.CreateControlInitializer("SettingsCheckBoxWithButtonControlTemplate", setting, nil, tooltip);
         initializer.data.buttonText = "Move/Resize Overlay"
@@ -307,13 +302,9 @@ function FishingMode:RegisterSettings()
         local tooltip = "Automatically equip a set with the name \"Fishing\" and will swap back when exiting fishing mode. Your rod effect is always active when fishing, so this is generally not needed."
         local variableName = "swapEquipmentSet"
         local defaultValue = defaults[variableName]
-        local initialValue = db[variableName]
 
         local setting = Settings.RegisterAddOnSetting(category, variable, variableName, db, type(defaultValue), name, defaultValue)
-        Settings.SetOnValueChangedCallback(variable, function(event)
-            self:OnSwapEquipmentSetChanged()
-        end)
-        Settings.SetValue(variable, initialValue)
+        SetOnValueChangedCallback(variable, self.OnSwapEquipmentSetChanged)
         Settings.CreateCheckbox(category, setting, tooltip)
     end
 
@@ -323,13 +314,9 @@ function FishingMode:RegisterSettings()
         local tooltip = "Will pause and resume fishing mode automatically when mounting and dismounting. Helpful if your key bindings overlap with dragonriding key bindings."
         local variableName = "pauseWhenMounted"
         local defaultValue = defaults[variableName]
-        local initialValue = db[variableName]
 
         local setting = Settings.RegisterAddOnSetting(category, variable, variableName, db, type(defaultValue), name, defaultValue)
-        Settings.SetOnValueChangedCallback(variable, function(event)
-            self:OnPauseWhenMountedChanged()
-        end)
-        Settings.SetValue(variable, initialValue)
+        SetOnValueChangedCallback(variable, self.OnPauseWhenMountedChanged)
         Settings.CreateCheckbox(category, setting, tooltip)
     end
 
@@ -340,10 +327,8 @@ function FishingMode:RegisterSettings()
         local tooltip = "When exiting fishing mode, will automatically remove the buff that shows your fishing rod."
         local variableName = "removeCosmeticBuff"
         local defaultValue = defaults[variableName]
-        local initialValue = db[variableName]
 
         local setting = Settings.RegisterAddOnSetting(category, variable, variableName, db, type(defaultValue), name, defaultValue)
-        Settings.SetValue(variable, initialValue)
         Settings.CreateCheckbox(category, setting, tooltip)
     end
 
@@ -354,13 +339,9 @@ function FishingMode:RegisterSettings()
         local tooltip = "Enable to override your normal volume settings while in fishing mode. The splash sound plays out of the Sound Effects channel. Levels will return to normal whenever fishing mode is paused/stopped."
         local variableName = "volumeOverrideEnabled"
         local defaultValue = defaults[variableName]
-        local initialValue = db[variableName]
 
         local setting = Settings.RegisterAddOnSetting(category, variable, variableName, db, type(defaultValue), name, defaultValue)
-        Settings.SetOnValueChangedCallback(variable, function(event)
-            self:OnOverrideGlobalEnabledChanged()
-        end)
-        Settings.SetValue(variable, initialValue)
+        SetOnValueChangedCallback(variable, self.OnOverrideGlobalEnabledChanged)
         local globalInitializer = Settings.CreateCheckbox(category, setting, tooltip)
 
         local function IsModifiable()
@@ -372,53 +353,51 @@ function FishingMode:RegisterSettings()
             local sliderVariable = "FishingMode.volumeOverrides." .. key .. ".level"
 
             local cbDefault = defaults.volumeOverrides[key].isOverridden
-            local cbInitial = db.volumeOverrides[key].isOverridden
             local sliderDefault = defaults.volumeOverrides[key].level
-            local sliderInitial = db.volumeOverrides[key].level
             local cbLabel = "Override " .. label .. " Volume"
             local sliderLabel = label .. " Volume Level"
 
             local cbSetting = Settings.RegisterProxySetting(category, cbVariable, type(cbDefault), cbLabel, cbDefault,
                 function()
-                    local override = db.volumeOverrides[channelName]
+                    local override = db.volumeOverrides[key]
                     if override then
                         return override.isOverridden
                     end
                     return cbDefault
                 end,
                 function(value)
-                    local override = db.volumeOverrides[channelName]
+                    local override = db.volumeOverrides[key]
                     if not override then
                         override = { isOverridden=value, level=sliderDefault }
-                        db.volumeOverrides[channelName] = override
+                        db.volumeOverrides[key] = override
                     else
                         override.isOverridden = value
                     end
                 end)
             local sliderSetting = Settings.RegisterProxySetting(category, sliderVariable, type(sliderDefault), sliderLabel, sliderDefault,
                 function()
-                    local override = db.volumeOverrides[channelName]
+                    local override = db.volumeOverrides[key]
                     if override then
                         return override.level
                     end
                     return sliderDefault
                 end,
                 function (value)
-                    local override = db.volumeOverrides[channelName]
+                    local override = db.volumeOverrides[key]
                     if not override then
                         override = { isOverridden=cbDefault, level=value }
-                        db.volumeOverrides[channelName] = override
+                        db.volumeOverrides[key] = override
                     else
                         override.level = value
                     end
                 end)
 
-            local function OnValueChanged(...)
-                self:OnVolumeOverrideSettingChanged(key)
+            local function OnValueChanged(obj)
+                obj:OnVolumeOverrideSettingChanged(key)
             end
 
-            Settings.SetOnValueChangedCallback(cbVariable, OnValueChanged)
-            Settings.SetOnValueChangedCallback(sliderVariable, OnValueChanged)
+            SetOnValueChangedCallback(cbVariable, OnValueChanged)
+            SetOnValueChangedCallback(sliderVariable, OnValueChanged)
 
             local data = {
                 name = label,
@@ -441,9 +420,6 @@ function FishingMode:RegisterSettings()
 
             layout:AddInitializer(initializer)
             initializer:SetParentInitializer(globalInitializer, IsModifiable)
-
-            Settings.SetValue(cbVariable, cbInitial)
-            Settings.SetValue(sliderVariable, sliderInitial)
         end
 
         AddVolumeSlider("Master", "Master", "Overrides master volume when fishing mode is active")
@@ -462,7 +438,6 @@ function FishingMode:RegisterSettings()
             local name = ("Macro %d"):format(macroIndex)
             local tooltip = "Bindable macro usable when fishing mode is active."
             local defaultValue = ""
-            local initialValue = db.macros[macroIndex]
 
             local setting = Settings.RegisterProxySetting(category, variable, type(defaultValue), defaultValue, name,
                 function()
@@ -472,10 +447,9 @@ function FishingMode:RegisterSettings()
                     db.macros[macroIndex] = value
                 end)
 
-            Settings.SetOnValueChangedCallback(variable, function(event)
-                FishingMode:OnMacroChanged(macroIndex)
+            SetOnValueChangedCallback(variable, function(obj)
+                obj:OnMacroChanged(macroIndex)
             end)
-            Settings.SetValue(variable, initialValue)
 
             local initializer = Settings.CreateControlInitializer("FishingModeSettingsEditBoxControlTemplate", setting, nil, tooltip)
             sublayout:AddInitializer(initializer)

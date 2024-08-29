@@ -434,12 +434,13 @@ end
 function FishingMode:OnVolumeOverrideSettingChanged(channelName)
     local volumeSettingName = GetVolumeCVarName(channelName)
     if self:IsActive() then
-        if isOverridden and self.db.profile.volumeOverrideEnabled then
-            self:ChangeCVar(volumeSettingName, level)
-        elseif self.originalSettings[volumeSettingName] ~= nil then
-            SetCVar(volumeSettingName, self.originalSettings[volumeSettingName])
-            self.originalSettings[volumeSettingName] = nil
+        local override = self.db.profile.volumeOverrides[channelName]
+        if self.db.profile.volumeOverrideEnabled and override and override.isOverridden then
+            self:ChangeCVar(volumeSettingName, override.level)
         end
+    elseif self.originalSettings and self.originalSettings[volumeSettingName] ~= nil then
+        SetCVar(volumeSettingName, self.originalSettings[volumeSettingName])
+        self.originalSettings[volumeSettingName] = nil
     end
 end
 
@@ -502,8 +503,8 @@ function FishingMode:Start(isResuming)
     end
 
     if self.db.profile.volumeOverrideEnabled then
-        for k, v in pairs(self.db.profile.volumeOverrides) do
-            self:ChangeVolumeOverrideSetting(k, v.isOverridden, v.level)
+        for k, _ in pairs(self.db.profile.volumeOverrides) do
+            self:OnVolumeOverrideSettingChanged(k)
         end
     end
 
