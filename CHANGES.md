@@ -1,3 +1,7 @@
+## v1.6.3
+
+* Update TOC for 11.0.7
+
 ## v1.6.2
 
 * Fix error while attempting to start Fishing Mode when volume override is enabled
