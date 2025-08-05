@@ -1,3 +1,7 @@
+## v1.6.6
+
+* Update TOC for 11.2.0
+
 ## v1.6.5
 
 * Update TOC for 11.1.5
