@@ -121,7 +121,7 @@ function FishingMode:OnIconClick(button)
         if IsShiftKeyDown() then
             FishingModeEditModeFrame:Show()
         else
-            Settings.OpenToCategory("FishingMode")
+            FishingMode:OpenSettingsPane()
         end
     end
 end

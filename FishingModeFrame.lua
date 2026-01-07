@@ -74,7 +74,7 @@ function FishingModeEditModeFrameMixin:OnLoad()
         FishingMode:SaveCurrentOverlayPosition()
         self:Hide()
 	end);
-	
+
 	self.DefaultsButton:SetText(RESET_TO_DEFAULT);
 	self.DefaultsButton:SetScript("OnClick", function(button, buttonName, down)
         FishingMode:MoveOverlayToDefaultPosition()
@@ -113,7 +113,7 @@ function FishingModeEditModeFrameMixin:OnHide()
 
     if self.openSettingsOnHide then
         self.openSettingsOnHide = false
-        Settings.OpenToCategory("FishingMode")
+        FishingMode:OpenSettingsPane()
     end
 end
 

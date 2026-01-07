@@ -188,7 +188,7 @@ end
 
 function FishingMode:RegisterSettings()
     local category, layout = Settings.RegisterVerticalLayoutCategory("Fishing Mode");
-    category.ID = "FishingMode"
+    FishingMode.settingsCategoryID = category.ID
 
     local defaults = self.defaults.profile
     local db = self.db.profile
@@ -472,9 +472,12 @@ function FishingMode:RegisterSettings()
     FishingMode.db.RegisterCallback(FishingMode, "OnProfileCopied", "RefreshSettings")
     FishingMode.db.RegisterCallback(FishingMode, "OnProfileReset", "RefreshSettings")
 
-    LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Fishing Mode", "Profiles", "FishingMode")
+    LibStub("AceConfigDialog-3.0"):AddToBlizOptions("Fishing Mode", "Profiles", category.ID)
 end
 
+function FishingMode:OpenSettingsPane()
+    Settings.OpenToCategory(FishingMode.settingsCategoryID)
+end
 
 FishingModeSettingsCheckboxSliderControlMixin = {}
 
