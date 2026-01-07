@@ -1,30 +1,6 @@
-## v1.6.6
+## v1.7.0
 
-* Update TOC for 11.2.0
-
-## v1.6.5
-
-* Update TOC for 11.1.5
-
-## v1.6.4
-
-* Update TOC for 11.1.0
-
-## v1.6.3
-
-* Update TOC for 11.0.7
-
-## v1.6.2
-
-* Fix error while attempting to start Fishing Mode when volume override is enabled
-* Fix cosmetic buff not getting cleared
-
-## v1.6.1
-
-* Update TOC for 11.0.2
-* Fix for various changes made to settings API
-
-## v1.6.0
-
-* Update TOC for 11.0.0
-* Fix for 11.0.0 renaming CreateCheckBox to CreateCheckbox
+* Update TOC for 12.0.0/12.0.1
+* Update Ace libraries to ensure 12.0 compat
+* Fix error opening settings to Fishing Mode category in 12.0
+  * Known bug: After adjusting the overlay, the main settings page opens instead of the addon settings
