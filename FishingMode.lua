@@ -171,6 +171,7 @@ function FishingMode:OnInitialize()
         local button = CreateFrame("Button", ("FishingModeMacroButton%d"):format(macroIndex), self.frame, "SecureActionButtonTemplate")
         button:SetAttribute("type", "macro")
         button:SetAttribute("macrotext", self.db.profile.macros[macroIndex])
+        button:RegisterForClicks("AnyUp", "AnyDown")
         self.frame.buttons[macroIndex] = button
     end
 

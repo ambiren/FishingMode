@@ -1,3 +1,7 @@
+## v1.7.2
+
+* Fix macro buttons
+
 ## v1.7.1
 
 * Fix TOC to also specify 11.2.7 support
