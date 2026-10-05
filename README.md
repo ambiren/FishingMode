@@ -46,7 +46,7 @@ You can have fishing mode automatically adjust the various sound levels of the g
 
 # WoW Forever Differences
 
-WoW Forever handles fishing a bit differently than mainline. These behaviors are important to be aware of.
+WoW Forever handles fishing a bit differently than retail. These behaviors are important to be aware of.
 
 ## Auto-Equip
 

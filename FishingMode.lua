@@ -269,7 +269,7 @@ end
 
 local TEMPLATE_TRACKED_INVSLOTS
 
--- Forever requires a fishing rod in the main hand, while mainline's most likely equipment to need
+-- Forever requires a fishing rod in the main hand, while retail's most likely equipment to need
 -- in the equipment set is a +fishing hat
 if FishingMode.IS_FOREVER then
     TEMPLATE_TRACKED_INVSLOTS = {
@@ -512,7 +512,7 @@ function FishingMode:Start(isResuming)
     end
 
     -- Automatically prompt to create a Fishing set in Forever
-    -- This is not critical enough in mainline to enforce here
+    -- This is not critical enough in retail to enforce here
     if self.IS_FOREVER then
         -- If the prompt was shown, don't continue
         -- The user will need to create the set and then enable again
