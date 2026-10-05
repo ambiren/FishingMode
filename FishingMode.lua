@@ -10,6 +10,12 @@ BINDING_NAME_FISHING_MODE_TOGGLE = "Start/Stop Fishing"
 BINDING_NAME_FISHING_MODE_ON = "Start Fishing"
 BINDING_NAME_FISHING_MODE_OFF = "Stop Fishing"
 
+FishingMode.IS_FOREVER = (function()
+    local version = GetBuildInfo()
+    local major = string.split(".", version, 2)
+    return major == "1"
+end)()
+
 FishingMode.callbacks = LibStub("CallbackHandler-1.0"):New(FishingMode)
 
 FishingMode.ICON_NORMAL = "Interface\\AddOns\\FishingMode\\media\\fish_hook"
@@ -78,6 +84,11 @@ FishingMode.defaults = {
         macros = {}
     },
 }
+
+if FishingMode.IS_FOREVER then
+    -- Forever requires a rod equipped to fish, so using an equipment set is an important default
+    FishingMode.defaults.profile.swapEquipmentSet = true
+end
 
 for macroIndex = 1, 5 do
     FishingMode.defaults.profile.bindings[("MACRO%d"):format(macroIndex)] = {
@@ -256,46 +267,37 @@ function FishingMode:RestoreEquipmentSet()
     end
 end
 
-local TEMPLATE_IGNORED_SLOTS = {
-    INVSLOT_AMMO,
-    INVSLOT_BACK,
-    INVSLOT_BODY,
-    INVSLOT_CHEST,
-    INVSLOT_FEET,
-    INVSLOT_FINGER1,
-    INVSLOT_FINGER2,
-    INVSLOT_HAND,
-    INVSLOT_LEGS,
-    INVSLOT_MAINHAND,
-    INVSLOT_NECK,
-    INVSLOT_RANGED,
-    INVSLOT_SHOULDER,
-    INVSLOT_TABARD,
-    INVSLOT_TRINKET1,
-    INVSLOT_TRINKET2,
-    INVSLOT_WAIST,
-    INVSLOT_WRIST,
-    INVSLOT_MAINHAND,
-    INVSLOT_OFFHAND,
-}
+local TEMPLATE_TRACKED_INVSLOTS
 
-local TEMPLATE_TRACKED_SLOTS = {
-    INVSLOT_HEAD,
-}
+-- Forever requires a fishing rod in the main hand, while mainline's most likely equipment to need
+-- in the equipment set is a +fishing hat
+if FishingMode.IS_FOREVER then
+    TEMPLATE_TRACKED_INVSLOTS = {
+        [INVSLOT_MAINHAND] = true
+    }
+else
+    TEMPLATE_TRACKED_INVSLOTS = {
+        [INVSLOT_HEAD] = true
+    }
+end
 
 function FishingMode:CreateTemplateEquipmentSet()
     C_EquipmentSet.CreateEquipmentSet("Fishing",  "inv_fishingpole_01")
     local setId = C_EquipmentSet.GetEquipmentSetID("Fishing")
 
-    for _, slot in ipairs(TEMPLATE_IGNORED_SLOTS) do
-        C_EquipmentSet.IgnoreSlotForSave(slot)
-    end
+    C_EquipmentSet.ClearIgnoredSlotsForSave()
 
-    for _, slot in ipairs(TEMPLATE_TRACKED_SLOTS) do
-        C_EquipmentSet.UnignoreSlotForSave(slot)
+    -- Need to start at AMMO since it is slot 0 while FIRST_EQUIPPED is slot 1
+    -- Blizzard UI code assumes these are contiguous, so we can do the same
+    for slot = INVSLOT_AMMO, INVSLOT_LAST_EQUIPPED do
+        if not TEMPLATE_TRACKED_INVSLOTS[slot] then
+            C_EquipmentSet.IgnoreSlotForSave(slot)
+        end
     end
 
     C_EquipmentSet.SaveEquipmentSet(setId)
+
+    C_EquipmentSet.ClearIgnoredSlotsForSave()
 end
 
 function FishingMode:OnIconVisibleChanged()
@@ -368,7 +370,13 @@ function FishingMode:ConvertInputToKey(input)
 end
 
 StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET"] = {
-    text = "You currently have no set named Fishing. Do you want to create a template set?",
+    text = (function()
+        if FishingMode.IS_FOREVER then
+            return "You currently have no set named Fishing. This is necessary for Fishing Mode to work correctly. Do you want to create a template set?"
+        else
+            return "You currently have no set named Fishing. Do you want to create a template set?"
+        end
+    end)(),
     button1 = "Create Set",
     button2 = "Don't Create Set",
     OnAccept = function()
@@ -385,7 +393,13 @@ StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET"] = {
 }
 
 StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET_FINISHED"] = {
-    text = "Fishing set created. Change the items through Equipment Manager.",
+    text = (function()
+        if FishingMode.IS_FOREVER then
+            return "Fishing set created. Be sure to add a rod through Equipment Manager."
+        else
+            return "Fishing set created. Change the items through Equipment Manager."
+        end
+    end)(),
     button1 = "Okay",
     timeout = 0,
     whileDead = true,
@@ -394,12 +408,19 @@ StaticPopupDialogs["FISHING_MODE_DIALOG_CREATE_SET_FINISHED"] = {
 }
 
 function FishingMode:OnSwapEquipmentSetChanged()
+    self:RequestCreateEquipmentSetIfNeeded()
+end
+
+function FishingMode:RequestCreateEquipmentSetIfNeeded()
     if self.db.profile.swapEquipmentSet and IsPlayerInWorld() then
         local setId = C_EquipmentSet.GetEquipmentSetID("Fishing")
         if not setId then
             StaticPopup_Show("FISHING_MODE_DIALOG_CREATE_SET")
+            return true
         end
     end
+
+    return false
 end
 
 function FishingMode:DisplayError(message)
@@ -488,6 +509,17 @@ function FishingMode:Start(isResuming)
     if InCombatLockdown() then
         self:DisplayError("Can't start fishing mode during combat lockdown.")
         return
+    end
+
+    -- Automatically prompt to create a Fishing set in Forever
+    -- This is not critical enough in mainline to enforce here
+    if self.IS_FOREVER then
+        -- If the prompt was shown, don't continue
+        -- The user will need to create the set and then enable again
+        if self:RequestCreateEquipmentSetIfNeeded() then
+            self:DisplayError("Fishing mode not enabled because Fishing set did not exist.")
+            return
+        end
     end
 
     self.isActive = true

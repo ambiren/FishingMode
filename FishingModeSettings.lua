@@ -295,11 +295,17 @@ function FishingMode:RegisterSettings()
         end
     end
 
-
     do
         local variable = "FishingMode.swapEquipmentSet"
         local name = "Auto-Equip Gear"
-        local tooltip = "Automatically equip a set with the name \"Fishing\" and will swap back when exiting fishing mode. Your rod effect is always active when fishing, so this is generally not needed."
+        local tooltip = "Automatically equip a set with the name \"Fishing\" and will swap back when exiting fishing mode."
+        
+        if FishingMode.IS_FOREVER then
+            tooltip = tooltip .. " If disabled, you will need to manually equip fishing rod to fish and unequip when done."
+        else
+            tooltip = tooltip .. " Your rod effect is always active when fishing, so this is generally not needed."
+        end
+
         local variableName = "swapEquipmentSet"
         local defaultValue = defaults[variableName]
 
@@ -311,7 +317,12 @@ function FishingMode:RegisterSettings()
     do
         local variable = "FishingMode.pauseWhenMounted"
         local name = "Pause When Mounted"
-        local tooltip = "Will pause and resume fishing mode automatically when mounting and dismounting. Helpful if your key bindings overlap with dragonriding key bindings."
+        local tooltip = "Will pause and resume fishing mode automatically when mounting and dismounting."
+        
+        if not FishingMode.IS_FOREVER then
+            tooltip = tooltip .. " Helpful if your key bindings overlap with skyriding key bindings."
+        end
+
         local variableName = "pauseWhenMounted"
         local defaultValue = defaults[variableName]
 
@@ -321,7 +332,8 @@ function FishingMode:RegisterSettings()
     end
 
 
-    do
+    -- Cosmetic buff does not exist in Forever
+    if not FishingMode.IS_FOREVER then
         local variable = "FishingMode.removeCosmeticBuff"
         local name = "Remove Cosmetic Buff"
         local tooltip = "When exiting fishing mode, will automatically remove the buff that shows your fishing rod."
