@@ -1,14 +1,9 @@
-## v1.7.2
+## v1.8.0
 
-* Fix macro buttons
-
-## v1.7.1
-
-* Fix TOC to also specify 11.2.7 support
-
-## v1.7.0
-
-* Update TOC for 12.0.0/12.0.1
-* Update Ace libraries to ensure 12.0 compat
-* Fix error opening settings to Fishing Mode category in 12.0
-  * Known bug: After adjusting the overlay, the main settings page opens instead of the addon settings
+* Add support for WoW Forever
+  * Auto-Equip Gear is enabled by default
+  * Prompts to create a "Fishing" equipment set when starting Fishing Mode without one
+  * Does not show the Remove Cosmetic Buff option
+* Update TOC for 12.1.0/12.1.5
+* Update Ace3 and LibDBIcon libraries
+* Fix overlay edit mode window not honoring UI scale
