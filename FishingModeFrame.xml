@@ -51,7 +51,7 @@ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd">
         </Frames>
     </Frame>
 
-	<Frame name="FishingModeEditModeFrame" clampedToScreen="true" enableMouse="true" mixin="FishingModeEditModeFrameMixin" movable="true" hidden="true">
+	<Frame name="FishingModeEditModeFrame" parent="UIParent" clampedToScreen="true" enableMouse="true" mixin="FishingModeEditModeFrameMixin" movable="true" hidden="true">
 		<Size x="450" y="140"/>
 		<Anchors>
 			<Anchor point="TOP" relativeTo="UIParent" relativePoint="TOP" x="0" y="-50" />
